@@ -7,3 +7,4 @@ https://github.com/Hamster128/WinSize3 <br>
 ## WinSize4.
 <br>
 WinSize4 runs in the background consuming very little resources. Every time a window gets focus does it check its database if a window with the same criteria exists, and if so places and resizes it. The criteria is which executable that runs it and / or the title of the window, and which screen the window is on.
+![image](https://user-images.githubusercontent.com/24943208/227801558-157a4e7b-0a1b-465e-b031-b96e093dde33.png)
