@@ -31,23 +31,14 @@ namespace WinSize4
                     row = new string[] { Scr.BoundsWidth.ToString(), Scr.BoundsHeight.ToString(), "Yes" };
                 else
                     row = new string[] { Scr.BoundsWidth.ToString(), Scr.BoundsHeight.ToString(), "No" };
-                    
-                bool Found = false;
-                Screen[] CurrentScreens = Screen.AllScreens;
-                foreach (Screen CurScr in CurrentScreens)
-                {
-                    if (Scr.BoundsWidth == CurScr.Bounds.Width &&
-                        Scr.BoundsHeight == CurScr.Bounds.Height &&
-                        Scr.Primary == CurScr.Primary)
-                    {
-                        Found = true;
-                        break;
-                    }
-                }
-
                 var listViewItem = new ListViewItem(row);
-                if (!Found)
+                if (! Scr.Present)
+                {
                     listViewItem.ForeColor = System.Drawing.Color.Silver;
+                    listViewItem.SubItems[1].ForeColor = Color.Silver;
+                    listViewItem.SubItems[2].ForeColor = Color.Silver;
+                    listViewItem.UseItemStyleForSubItems = false;
+                }
                 listView1.Items.Add(listViewItem);
                 if (Scr.BoundsWidth == _boundsWidth && Scr.BoundsHeight == _boundsHeight && Scr.Primary == _primary)
                     Index = listView1.Items.Count - 1;

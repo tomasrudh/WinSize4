@@ -42,5 +42,8 @@ namespace WinSize4
 
         public bool Primary
         { set; get; }
+
+        public bool Present
+        { set; get; }
     }
 }

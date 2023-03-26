@@ -3,33 +3,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinSize4
 {
 
     public class ClsCurrentWindows
     {
-        public List<ClsWindows> Windows = new List<ClsWindows>();
-
-        //**********************************************
-        /// <summary> Finds index to the first window with the supplied hWnd, or -1 </summary>
-        /// <param name="hWnd"></param>
-        /// <returns>currentWindowIndex</returns>
-        //**********************************************
-        public int GetIndexForhWnd(long hWnd)
-        {
-            int index;
-            for (index = 0; index < this.Windows.Count; index++)
-            {
-                if (this.Windows[index].hWnd == hWnd)
-                    break;
-            }
-            if (index == this.Windows.Count)
-                index = -1;
-            return index;
-        }
+        public List<ClsWindows> Windows = new();
 
         //**********************************************
         /// <summary> Adds hWnd </summary>
@@ -39,29 +23,74 @@ namespace WinSize4
         {
             this.Windows.Add(new ClsWindows());
             this.Windows[this.Windows.Count - 1].hWnd = hWnd;
+            GetWindowThreadProcessId((IntPtr)hWnd, out int Pid);
+            this.Windows[this.Windows.Count - 1].Pid = Pid;
             UpdateWindowProperties(this.Windows.Count - 1);
         }
 
         //**********************************************
-        /// <summary> Sets the property Moved to True for all windows </summary>
+        /// <summary> Finds index to the first window with the supplied hWnd, or -1 </summary>
         /// <param name="hWnd"></param>
+        /// <returns>currentWindowIndex</returns>
         //**********************************************
-        public void SetMoved(long hWnd)
+        public int GetIndexForhWnd(long hWnd)
         {
+            int foundIndex = -1;
+            for (int index = 0; index < this.Windows.Count; index++)
+            {
+                if (this.Windows[index].hWnd == hWnd)
+                {
+                    foundIndex = index;
+                    break;
+                }
+            }
+            return foundIndex;
+        }
+
+        //**********************************************
+        /// <summary> Finds index to the first window with the supplied Pid and another Hwnd </summary>
+        /// <param name="Pid"></param>
+        /// <param name="hWnd"></param>
+        /// <returns>currentWindowIndex, or -1</returns>
+        //**********************************************
+        public int GetIndexForPid(int Pid, long hWnd)
+        {
+            int foundIndex = -1;
+            for (int index = 0; index < this.Windows.Count; index++)
+            {
+                if (this.Windows[index].Pid == Pid && this.Windows[index].hWnd != hWnd)
+                {
+                    foundIndex = index;
+                    break;
+                }
+            }
+            return foundIndex;
+        }
+
+        //**********************************************
+        /// <summary> Removes closed this.Windows </summary>
+        //**********************************************
+        public void CleanWindowsList()
+        {
+            var windowHandles = new List<IntPtr>();
+            foreach (KeyValuePair<IntPtr, string> window in ClsWindowGetter.GetOpenWindows())
+            {
+                windowHandles.Add(window.Key);
+            }
             for (int i = 0; i < this.Windows.Count; i++)
             {
-                if (this.Windows[i].hWnd == hWnd)
+                if (!windowHandles.Contains((IntPtr)this.Windows[i].hWnd))
                 {
-                    this.Windows[i].Moved = true;
-                    break;
+                    this.Windows.RemoveAt(i);
                 }
             }
         }
 
         //**********************************************
-        /// <summary> Removes closed this.Windows, to be used in Currentthis.Windows </summary>
+        /// <summary> Removes closed this.Windows </summary>
+        /// Takes long time!
         //**********************************************
-        public void CleanWindowsList()
+        public void CleanWindowsListX()
         {
             try
             {
@@ -93,48 +122,72 @@ namespace WinSize4
         {
             try
             {
-                var props = new ClsWindowProps();
-                //int currentWindowIndex = GetIndexForhWnd(hWnd);
-
-                Screen screen = Screen.FromHandle((IntPtr)this.Windows[Index].hWnd);
-                props.MonitorBoundsWidth = screen.Bounds.Width;
-                props.MonitorBoundsHeight = screen.Bounds.Height;
-                props.Primary = screen.Primary;
-
-                int length = GetWindowTextLength((IntPtr)this.Windows[Index].hWnd);
-                var builder = new StringBuilder(length);
-                GetWindowText((IntPtr)this.Windows[Index].hWnd, builder, length + 1);
-                props.Title = builder.ToString();
-
-                //props.Name = screen.Bounds.Width + "x" + screen.Bounds.Height + ((screen.Primary) ? "P" : "") + " - " + props.Title;
-                props.Name = props.Title;
-
-                var rect = new Rectangle();
-                GetWindowRect((IntPtr)this.Windows[Index].hWnd, ref rect);
-
-                props.Top = rect.Top;
-                props.Left = rect.Left;
-
-                props.Width = rect.Width - rect.Left;
-                props.Height = rect.Height - rect.Top;
-
-                GetWindowThreadProcessId((IntPtr)this.Windows[Index].hWnd, out int ProcIdXL);
-                Process xproc = Process.GetProcessById(ProcIdXL);
-                if (xproc is null)
-                {
-                    props.Exe = "";
-                }
-                else
-                {
-                    props.Exe = xproc.ProcessName;
-                }
-                this.Windows[Index].Props = props;
+                var Props = new ClsWindowProps();
+                Props = GetWindowProperties(this.Windows[Index].hWnd);
+                this.Windows[Index].Props = Props;
                 this.Windows[Index].Present = true;
-                this.Windows[Index].Moved = false;
+                //this.Windows[Index].Moved = false;
             }
             catch
             (Exception ex)
-            { }
+            {
+                EventLog.WriteEntry("WinSize4", ex.Message, EventLogEntryType.Error, 1);
+            }
+        }
+
+        //**********************************************
+        /// <summary>Updates properties for the supplied window index</summary>
+        /// <param name="hWnd"></param>
+        /// <returns>ClsWindowProps</returns>
+        //**********************************************
+        public ClsWindowProps GetWindowProperties(long hWnd)
+        {
+            ClsWindowProps Props = new();
+            try
+            {
+                StringBuilder ClassName = new(256);
+                GetClassName((IntPtr)hWnd, ClassName, ClassName.Capacity);
+                Props.WindowClass = ClassName.ToString();
+
+                Screen screen = Screen.FromHandle((IntPtr)hWnd);
+                Props.MonitorBoundsWidth = screen.Bounds.Width;
+                Props.MonitorBoundsHeight = screen.Bounds.Height;
+                Props.Primary = screen.Primary;
+
+                int length = GetWindowTextLength((IntPtr)hWnd);
+                var builder = new StringBuilder(length);
+                GetWindowText((IntPtr)hWnd, builder, length + 1);
+                Props.Title = builder.ToString();
+
+                //Props.Name = screen.Bounds.Width + "x" + screen.Bounds.Height + ((screen.Primary) ? "P" : "") + " - " + Props.Title;
+                Props.Name = Props.Title;
+
+                var rect = new Rectangle();
+                GetWindowRect((IntPtr)hWnd, ref rect);
+
+                Props.Top = rect.Top;
+                Props.Left = rect.Left;
+
+                Props.Width = rect.Width - rect.Left;
+                Props.Height = rect.Height - rect.Top;
+
+                GetWindowThreadProcessId((IntPtr)hWnd, out int ProcIdXL);
+                Process xproc = Process.GetProcessById(ProcIdXL);
+                if (xproc is null)
+                {
+                    Props.Exe = "";
+                }
+                else
+                {
+                    Props.Exe = xproc.ProcessName;
+                }
+            }
+            catch
+            (Exception ex)
+            {
+                EventLog.WriteEntry("WinSize4", ex.Message, EventLogEntryType.Error, 2);
+            }
+            return Props;
         }
 
         //**********************************************
@@ -144,26 +197,39 @@ namespace WinSize4
         //**********************************************
         public void MoveCurrentWindow(int currentWindowIndex, ClsWindowProps savedWindowProps, ClsScreenList savedScreenProps, ClsScreenList currentScreenProps)
         {
-            if (!savedWindowProps.MaxWidth && !savedWindowProps.MaxHeight)
-                //MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, savedWindowProps.Left, savedWindowProps.Top, savedWindowProps.Width, savedWindowProps.Height, true);
-                SetWindowPos((IntPtr)this.Windows[currentWindowIndex].hWnd, savedScreenProps.X, savedWindowProps.Left, savedWindowProps.Top, savedWindowProps.Width, savedWindowProps.Height, 0);
-
-            if (savedWindowProps.MaxWidth && !savedWindowProps.MaxHeight)
-                MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, 0, savedWindowProps.Top, savedScreenProps.CustomWidth, savedWindowProps.Height, true);
-
-            if (!savedWindowProps.MaxWidth && savedWindowProps.MaxHeight)
-                MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, savedWindowProps.Left, savedScreenProps.Y, savedWindowProps.Width, savedScreenProps.CustomHeight, true);
-
-            if (savedWindowProps.MaxWidth && savedWindowProps.MaxHeight)
-                MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, currentScreenProps.X, currentScreenProps.Y, savedScreenProps.CustomWidth, savedScreenProps.CustomHeight, true);
-            //SetWindowPos((IntPtr)this.Windows[currentWindowIndex].hWnd, 0, 0, 0, -100, -100, 0X4 | 1 | 0x0010);
-
+            WINDOWPLACEMENT wp = new();
+            GetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
+            wp.showCmd = 1; // 1- Normal; 2 - Minimize; 3 - Maximize;
             if (savedWindowProps.FullScreen)
             {
-                WINDOWPLACEMENT wp = new WINDOWPLACEMENT();
-                GetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
                 wp.showCmd = 3; // 1- Normal; 2 - Minimize; 3 - Maximize;
                 SetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
+            }
+            else
+            {
+                if (!savedWindowProps.MaxWidth && !savedWindowProps.MaxHeight)
+                {
+                    SetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
+                    SetWindowPos((IntPtr)this.Windows[currentWindowIndex].hWnd, savedScreenProps.X, savedWindowProps.Left, savedWindowProps.Top, savedWindowProps.Width, savedWindowProps.Height, 0);
+                }
+
+                if (savedWindowProps.MaxWidth && !savedWindowProps.MaxHeight)
+                {
+                    SetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
+                    MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, 0, savedWindowProps.Top, savedScreenProps.CustomWidth, savedWindowProps.Height, true);
+                }
+
+                if (!savedWindowProps.MaxWidth && savedWindowProps.MaxHeight)
+                {
+                    SetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
+                    MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, savedWindowProps.Left, savedScreenProps.Y, savedWindowProps.Width, savedScreenProps.CustomHeight, true);
+                }
+
+                if (savedWindowProps.MaxWidth && savedWindowProps.MaxHeight)
+                {
+                    SetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
+                    MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, currentScreenProps.X, currentScreenProps.Y, savedScreenProps.CustomWidth, savedScreenProps.CustomHeight, true);
+                }
             }
         }
 
@@ -214,14 +280,17 @@ namespace WinSize4
         [DllImport("user32.dll")]
         public static extern bool GetWindowRect(IntPtr hwnd, ref Rectangle rectangle);
 
-        [DllImport("user32.dll")]
-        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int processId);
 
         [DllImport("user32.dll")]
         public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
         [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
         public static extern IntPtr SetWindowPos(IntPtr hWnd, int hWndInsertAfter, int x, int Y, int cx, int cy, int wFlags);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
         const short SWP_NOSIZE = 1;
         const short SWP_NOZORDER = 0X4;

@@ -9,6 +9,7 @@ namespace WinSize4
     public class ClsWindows
     {
         public long hWnd;
+        public int Pid;
         public ClsWindowProps Props;
         public Boolean Present;
         public Boolean Moved;

@@ -13,6 +13,7 @@ namespace WinSize4
         public string HotKeyCharacter = "Z";
         public bool showAllWindows = true;
         public bool resetIfNewScreen = false;
+        public bool runAtLogin = false;
         private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
         private string _fileNameWindows = "Settings.json";
 
@@ -27,6 +28,7 @@ namespace WinSize4
             saveList.HotKeyRight = this.HotKeyRight;
             saveList.showAllWindows = this.showAllWindows;
             saveList.resetIfNewScreen = this.resetIfNewScreen;
+            saveList.runAtLogin = this.runAtLogin;
 
             var options = new JsonSerializerOptions()
             {
@@ -61,6 +63,7 @@ namespace WinSize4
                     this.HotKeyRight = saveList.HotKeyRight;
                     this.showAllWindows = saveList.showAllWindows;
                     this.resetIfNewScreen = saveList.resetIfNewScreen;
+                    this.runAtLogin = saveList.runAtLogin;
                 }
             }
             catch (Exception e)
@@ -111,6 +114,8 @@ namespace WinSize4
         public bool showAllWindows
         { set; get; }
         public bool resetIfNewScreen
+        { set; get; }
+        public bool runAtLogin
         { set; get; }
     }
 }
