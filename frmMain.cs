@@ -1,13 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.Win32;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation.Collections;
-using Windows.UI.Notifications;
+using System.Text.Json;
+using Windows.Media.Devices;
+using System.Windows.Forms;
+using System.Text;
 
 namespace WinSize4
 {
@@ -24,6 +22,7 @@ namespace WinSize4
         bool _closeWindow = false;
         bool _toastClicked = false;
         bool _dirty = false;
+        private bool allowVisible;     // ContextMenu's Show command used
 
         //**********************************************
         // Form initialize
@@ -34,23 +33,41 @@ namespace WinSize4
             _settings.LoadFromFile();
             _savedWindows.Load();
             _screens.Load();
-            _screens.GetScreens();
+            _screens.AddNewScreens();
             _screens.SetPresent();
             _screens.Save();
             //_savedWindows.Order();
             PopulateListBox();
+            ClsDebug.ClearLog();
+            ClsDebug.LogNow("\nScreens:");
+            for (int i = 0; i < _screens.ScreenList.Count; i++)
+            {
+                ClsDebug.LogNow(" Screen " + i + " " + _screens.ScreenList[i].BoundsWidth + " " + _screens.ScreenList[i].BoundsHeight +
+                    " Primary: " + _screens.ScreenList[i].Primary + " Present: " + _screens.ScreenList[i].Present);
+            }
+            ClsDebug.LogNow("\nSaved windows:");
+            for (int i = 0; i < _savedWindows.Props.Count; i++)
+            {
+                ClsDebug.LogNow(" Window " + i + " " + _savedWindows.Props[i].Name + " " + _savedWindows.Props[i].Exe + " " + _savedWindows.Props[i].MonitorBoundsWidth +
+                    " " + _savedWindows.Props[i].MonitorBoundsHeight + " " + _savedWindows.Props[i].Primary);
+            }
             notifyIcon1.Text = _savedWindows.Props.Count.ToString() + " controlled windows";
             notifyIcon1.ContextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
+            notifyIcon1.ContextMenuStrip.Items.Add("Show", null, this.butShow_Click);
             notifyIcon1.ContextMenuStrip.Items.Add("Reset moved", null, this.butResetMoved_Click);
             notifyIcon1.ContextMenuStrip.Items.Add("Exit", null, this.butExit_Click);
             cbHotKeyLeft.SelectedIndex = cbHotKeyLeft.FindString(_settings.HotKeyLeft);
             cbHotKeyLeft_SelectedIndexChanged(this, EventArgs.Empty);
-            cbSearchTitle_CheckedChanged(this, EventArgs.Empty);
+            cbSearchTitleInclude_CheckedChanged(this, EventArgs.Empty);
+            cbSearchTitleExclude_CheckedChanged(this, EventArgs.Empty);
             cbHotKeyRight.SelectedIndex = cbHotKeyRight.FindString(_settings.HotKeyRight);
             tbHotKeyCharacter.Text = _settings.HotKeyCharacter;
             cbShowAllWindows.Checked = _settings.showAllWindows;
             cbResetIfNewScreen.Checked = _settings.resetIfNewScreen;
             cbRunAtLogin.Checked = _settings.runAtLogin;
+            ClsDebug.AddText("\nStarting");
+            ClsDebug.LogText();
+            timer1.Interval = _settings.Interval;
             RegisterListener();
             //this.AddHandler(KeyDownEvent, new KeyEventHandler(KeyDown), true);
         }
@@ -72,301 +89,290 @@ namespace WinSize4
         //**********************************************
         protected override void WndProc(ref Message m)
         {
-            // Stop the timer while we handle a hotkey click
-            timer1.Stop();
-            bool newWindow = false;
-            if (m.Msg == 0x0312 && m.WParam.ToInt32() == _hotKeyID)
+            try
             {
-                long hWnd = (long)GetForegroundWindow();
-                int focusIndex = _currentWindows.GetIndexForhWnd(hWnd);
-                if (focusIndex == -1)
+                // Stop the timer while we handle a hotkey click
+                timer1.Stop();
+                bool newWindow = false;
+                if (m.Msg == 0x0312 && m.WParam.ToInt32() == _hotKeyID)
                 {
-                    // AddWindow the window to _currentWindows
-                    _screens.GetScreens();
-                    _currentWindows.Add(hWnd);
-                    _dirty = true;
-                    //_currentWindows.SetMoved(hWnd);
-                    focusIndex = _currentWindows.Windows.Count - 1;
-                }
-                else
-                {
+                    long hWnd = (long)GetForegroundWindow();
+                    int focusIndex = _currentWindows.GetCurrentWindowsIndexForhWnd(hWnd);
+                    bool Changed = _screens.AddNewScreens();
+                    if (_settings.resetIfNewScreen && Changed)
+                        _currentWindows.ResetMoved();
+
                     // Update the existing window in _currentWindows
                     _currentWindows.UpdateWindowProperties(focusIndex);
                     _currentWindows.Windows[focusIndex].Moved = false;
-                }
-                int Tag;
-                int screenIndex = _screens.GetIndexForWindow(_currentWindows.Windows[focusIndex].Props);
-                if (!_savedWindows.UpdateWindowProperties(_currentWindows.Windows[focusIndex].Props, _screens.ScreenList, screenIndex))
-                {
-                    newWindow = true;
-                    Tag = _savedWindows.AddWindow(_currentWindows.Windows[focusIndex].Props);
-                }
-                PopulateListBox();
-                int savedWindowsIndex = _savedWindows.GetIndex(_currentWindows.Windows[focusIndex].Props, _screens.ScreenList, screenIndex);
-                listView1.Items[GetListViewIndexByTag(_savedWindows.Props[savedWindowsIndex].Tag)].Selected = true;
-                listView1.Select();
+                    int Tag;
+                    int screenIndex = _screens.GetScreenIndexForWindow(_currentWindows.Windows[focusIndex].Props);
+                    if (!_savedWindows.UpdateWindowProperties(_currentWindows.Windows[focusIndex].Props, _screens.ScreenList, screenIndex))
+                    {
+                        newWindow = true;
+                        Tag = _savedWindows.AddWindow(_currentWindows.Windows[focusIndex].Props);
+                    }
+                    PopulateListBox();
+                    int savedWindowsIndex = _savedWindows.GetIndexCurrentScreen(_currentWindows.Windows[focusIndex].Props, _screens.ScreenList, screenIndex);
+                    int Index = GetListViewIndexByTag(_savedWindows.Props[savedWindowsIndex].Tag);
+                    listView1.Items[Index].Selected = true;
+                    listView1.Select();
 
-                ToastNotificationManagerCompat.OnActivated += toastArgs =>
-                {
-                    _toastClicked = true;
-                };
-                string newWindowText = newWindow == true ? "Adding as a new window" : "Updating an existing window";
-                new ToastContentBuilder()
-                    //.AddHeader("WinSize4", "WinSize4", "action=openConversation&id=WinSize4")
-                    .AddText("WinSize4 controls a window")
-                    .AddText(newWindowText)
-                    .AddText(_savedWindows.Props[savedWindowsIndex].Title)
-                    .SetBackgroundActivation()
-                    .Show();
+                    ToastNotificationManagerCompat.OnActivated += toastArgs =>
+                    {
+                        _toastClicked = true;
+                    };
+
+                    ClsWindowProps Props = _currentWindows.GetWindowProperties(hWnd);
+                    string newWindowText = newWindow == true ? "WinSize4: Adding as a new window" : "WinSize4: Updating an existing window";
+                    new ToastContentBuilder()
+                        //.AddHeader("WinSize4", "WinSize4", "action=openConversation&id=WinSize4")
+                        .AddText(newWindowText)
+                        .AddText("Title: " + Props.Title)
+                        .AddText(_savedWindows.Props[savedWindowsIndex].Name)
+                        .SetBackgroundActivation()
+                        .Show();
+                    newWindowText += "\nTitle: " + _savedWindows.Props[savedWindowsIndex].TitleInclude;
+                    ClsDebug.LogToEvent(new Exception(), EventLogEntryType.Information, newWindowText);
+                }
+                base.WndProc(ref m);
             }
-            base.WndProc(ref m);
-            timer1.Start();
+            catch
+            (Exception ex)
+            {
+                ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "");
+            }
+            finally
+            {
+                timer1.Start();
+            }
         }
-
         //**********************************************
         // timer1 click
         //**********************************************
         private void timer1_Tick(object sender, EventArgs e)
         {
-            var watch = new System.Diagnostics.Stopwatch();
-            watch.Start();
-
-            timer1.Stop();
-            int screenIndex;
-
-            if (_toastClicked)
-                this.Show();
-
-            bool IsChild = false;
-            bool IgnoreChildWindow = true;
-            int savedWindowsIndex;
-
-            //if (_screens.CleanScreenList() && _settings.resetIfNewScreen)
-            //    _currentWindows.ResetMoved();
-
-            long hWnd = (long)GetForegroundWindow();
-            if (hWnd > 0)
+            try
             {
-                _screens.SetPresent();
-                _currentWindows.CleanWindowsList();
-                GetWindowThreadProcessId((IntPtr)hWnd, out int Pid);
-                IsChild = (_currentWindows.GetIndexForPid(Pid, hWnd) > -1);
-
-                // Check if the window exists in _currentWindows, add it if not
-                int currentWindowsIndex = _currentWindows.GetIndexForhWnd(hWnd);
-                if (currentWindowsIndex == -1)
+                allowVisible = true;
+                var watch = new System.Diagnostics.Stopwatch();
+                watch.Start();
+                ClsDebug._text = "";
+                ClsDebug.AddText("Timer1_Tick starting");
+                timer1.Stop();
+                long hWnd = (long)GetForegroundWindow();
+                if (hWnd > 0)
                 {
-                    _currentWindows.Add(hWnd);
-                    currentWindowsIndex = _currentWindows.Windows.Count - 1;
-                    ClsWindowProps CurrentWindowProps = _currentWindows.GetWindowProperties(hWnd);
-                    screenIndex = _screens.GetIndexForWindow(_currentWindows.Windows[currentWindowsIndex].Props);
-                    savedWindowsIndex = _savedWindows.GetIndex(CurrentWindowProps, _screens.ScreenList, screenIndex);
-                    if (savedWindowsIndex > -1)
+                    bool NewScreen = _screens.AddNewScreens();
+                    bool ChangedScreens = _screens.SetPresent();
+                    if (_settings.resetIfNewScreen && (NewScreen || ChangedScreens))
                     {
-                        IgnoreChildWindow = _savedWindows.Props[savedWindowsIndex].IgnoreChildWindows;
+                        _currentWindows.ResetMoved();
+                        PopulateListBox();
                     }
-                }
-                // Only continue if window is not a child window to a current window, or child windows should be considered
-                if (!IsChild || !IgnoreChildWindow)
-                {
-                    // If the window has no title, don't bother, it's probably a preview
-                    if (_currentWindows.Windows[currentWindowsIndex].Props.Title != "")
+                    ClsWindowProps currentWindowProps = _currentWindows.GetWindowProperties(hWnd);
+                    int currentScreenIndex = _screens.GetScreenIndexForWindow(currentWindowProps);
+                    int targetSavedWindowsIndex = _savedWindows.GetIndexAllScreens(currentWindowProps, _screens.ScreenList, currentScreenIndex);
+                    int currentWindowsIndex = _currentWindows.GetCurrentWindowsIndexForhWnd(hWnd);
+                    if (targetSavedWindowsIndex > -1 &&
+                        currentWindowProps.Title != "" &&
+                        _currentWindows.Windows[currentWindowsIndex].Moved == false)
                     {
-                        // Does window exists in _savedWindows?
-                        screenIndex = _screens.GetIndexForWindow(_currentWindows.Windows[currentWindowsIndex].Props);
-                        savedWindowsIndex = _savedWindows.GetIndex(_currentWindows.Windows[currentWindowsIndex].Props, _screens.ScreenList, screenIndex);
-                        if (savedWindowsIndex > -1)
+                        int targetScreenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[targetSavedWindowsIndex]);
+                        bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
+                        // Only continue if window is not a child window to a current window, or child windows should be considered
+                        if (!_savedWindows.Props[targetSavedWindowsIndex].IgnoreChildWindows || !targetWindowHasParent)
                         {
-                            // Is the window already moved?
-                            if (!_currentWindows.Windows[currentWindowsIndex].Moved)
-                            {
-                                // Find primary screen and that screen in _currentScreens
-                                int priScreenIndex;
-                                Screen PriScr;
-                                foreach (Screen s in Screen.AllScreens)
-                                {
-                                    if (s.Primary)
-                                    {
-                                        PriScr = s;
-                                        for (int i = 0; i < _screens.ScreenList.Count; i++)
-                                        {
-                                            if (_screens.ScreenList[i].BoundsWidth == PriScr.Bounds.Width &&
-                                                _screens.ScreenList[i].BoundsHeight == PriScr.Bounds.Height &&
-                                                _screens.ScreenList[i].Primary == PriScr.Primary)
-                                            {
-                                                priScreenIndex = i;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
+                            string Text = _currentWindows.Windows[currentWindowsIndex].hWnd + " " +
+                                _currentWindows.Windows[currentWindowsIndex].Pid + " " +
+                                _currentWindows.Windows[currentWindowsIndex].Props.Name + " " +
+                                _currentWindows.Windows[currentWindowsIndex].Props.Exe + " " +
+                                _currentWindows.Windows[currentWindowsIndex].Props.WindowClass;
+                            ClsDebug.AddText("Moving window: " + Text);
 
-                                // Find index in _currentScreens for the window, or -1
-                                Screen Scr = Screen.FromHandle((IntPtr)hWnd);
-                                screenIndex = _screens.GetIndexForWindow(_currentWindows.Windows[currentWindowsIndex].Props);
-                                if (screenIndex == -1)
-                                {
-                                    ClsScreenList NewScr = new ClsScreenList();
-                                    NewScr.BoundsWidth = Scr.Bounds.Width;
-                                    NewScr.BoundsHeight = Scr.Bounds.Height;
-                                    NewScr.WorkingAreaWidth = Scr.WorkingArea.Width;
-                                    NewScr.WorkingAreaHeight = Scr.WorkingArea.Height;
-                                    NewScr.Primary = Scr.Primary;
-                                    _screens.Add(NewScr);
-                                    if (_settings.resetIfNewScreen)
-                                        _currentWindows.ResetMoved();
-                                    screenIndex = _screens.ScreenList.Count - 1;
-                                }
-
-                                // Find screen in _screens
-                                int screenSavedIndex = _screens.GetIndexForScreen(_screens.ScreenList[screenIndex]);
-
-                                // Move window
-                                if (screenSavedIndex > -1)
-                                {
-                                    string Text = _currentWindows.Windows[currentWindowsIndex].hWnd + " " +
-                                        _currentWindows.Windows[currentWindowsIndex].Pid + " " +
-                                        _currentWindows.Windows[currentWindowsIndex].Props.Name + " " +
-                                        _currentWindows.Windows[currentWindowsIndex].Props.Name + " " +
-                                        _currentWindows.Windows[currentWindowsIndex].Props.WindowClass;
-                                    Debug.WriteLine($"Moving window: " + Text);
-                                    _currentWindows.MoveCurrentWindow(currentWindowsIndex,
-                                        _savedWindows.Props[savedWindowsIndex],
-                                        _screens.ScreenList[screenSavedIndex],
-                                        _screens.ScreenList[screenIndex]);
-                                    _currentWindows.UpdateWindowProperties(currentWindowsIndex);
-                                    //_currentWindows.SetMoved(_currentWindows.Windows[currentWindowsIndex].hWnd);
-                                    _currentWindows.Windows[currentWindowsIndex].Moved = true;
-                                }
-                            }
+                            _currentWindows.MoveCurrentWindow(currentWindowsIndex,
+                                _savedWindows.Props[targetSavedWindowsIndex],
+                                targetSavedWindowsIndex,
+                                _screens.ScreenList[targetScreenIndex],
+                                new ClsScreenList());
+                            _currentWindows.UpdateWindowProperties(currentWindowsIndex);
+                            _currentWindows.Windows[currentWindowsIndex].Moved = true;
+                            //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
+                            ClsDebug.AddText($"Execution Time: {watch.ElapsedMilliseconds} ms");
+                            watch.Stop();
+                            ClsDebug.LogText();
                         }
                     }
                 }
-                //_currentWindows.Windows[currentWindowsIndex].Moved = true;
             }
-
-            timer1.Start();
-            _toastClicked = false;
-            watch.Stop();
-            Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
+            catch
+            (Exception ex)
+            {
+                ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "");
+            }
+            finally
+            {
+                timer1.Start();
+                _toastClicked = false;
+            }
         }
 
         //**********************************************
-        // Populate listbox
+        // Populate listbox with saved windows
         //**********************************************
         private void PopulateListBox()
         {
-            int lastSelected = 0;
-            if (listView1.SelectedItems.Count > 0)
+            try
             {
-                lastSelected = (int)listView1.SelectedItems[0].Index;
-            }
-            listView1.Items.Clear();
-            string[] row;
-            for (int i = 0; i < _savedWindows.Props.Count; i++)
-            {
-                string Primary = _savedWindows.Props[i].Primary ? "Yes" : "No";
-                row = new string[] { _savedWindows.Props[i].Name, _savedWindows.Props[i].MonitorBoundsWidth.ToString(), _savedWindows.Props[i].MonitorBoundsHeight.ToString(), Primary };
-                var listViewItem = new ListViewItem(row);
-                listViewItem.Tag = _savedWindows.Props[i].Tag;
-                if (!_screens.ScreenList[_screens.GetIndexForWindow(_savedWindows.Props[i])].Present)
+                int lastSelected = 0;
+                if (listView1.SelectedItems.Count > 0)
                 {
-                    if (_settings.showAllWindows)
+                    lastSelected = listView1.SelectedItems[0].Index;
+                }
+                listView1.Items.Clear();
+                string[] row;
+                for (int i = 0; i < _savedWindows.Props.Count; i++)
+                {
+                    string Primary = _savedWindows.Props[i].Primary ? "Yes" : "No";
+                    row = new string[] { _savedWindows.Props[i].Name, _savedWindows.Props[i].MonitorBoundsWidth.ToString(), _savedWindows.Props[i].MonitorBoundsHeight.ToString(), Primary };
+                    var listViewItem = new ListViewItem(row);
+                    listViewItem.Tag = _savedWindows.Props[i].Tag;
+                    if (!_screens.ScreenList[_screens.GetScreenIndexForWindow(_savedWindows.Props[i])].Present)
                     {
-                        listViewItem.ForeColor = Color.Silver;
-                        listViewItem.SubItems[1].ForeColor = Color.Silver;
-                        listViewItem.SubItems[2].ForeColor = Color.Silver;
-                        listViewItem.SubItems[3].ForeColor = Color.Silver;
-                        listViewItem.UseItemStyleForSubItems = false;
+                        if (_settings.showAllWindows)
+                        {
+                            listViewItem.ForeColor = Color.Silver;
+                            listViewItem.SubItems[1].ForeColor = Color.Silver;
+                            listViewItem.SubItems[2].ForeColor = Color.Silver;
+                            listViewItem.SubItems[3].ForeColor = Color.Silver;
+                            listViewItem.UseItemStyleForSubItems = false;
+                            listView1.Items.Add(listViewItem);
+                        }
+                    }
+                    else
+                    {
                         listView1.Items.Add(listViewItem);
                     }
+
                 }
-                else
+                if (listView1.Items.Count > 0 && lastSelected < listView1.Items.Count)
                 {
-                    listView1.Items.Add(listViewItem);
+                    listView1.Items[lastSelected].Selected = true;
                 }
-
+                listView1.Select();
+                notifyIcon1.BalloonTipTitle = "WinSize4";
+                notifyIcon1.BalloonTipText = _savedWindows.Props.Count.ToString() + " controlled windows";
             }
-            if (listView1.Items.Count > 0 && lastSelected < listView1.Items.Count)
+            catch
+            (Exception ex)
             {
-                listView1.Items[lastSelected].Selected = true;
+                ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "");
             }
-            listView1.Select();
-            notifyIcon1.BalloonTipTitle = "WinSize4";
-            notifyIcon1.BalloonTipText = _savedWindows.Props.Count.ToString() + " controlled windows";
         }
-
         //**********************************************
         // Listbox selection changed
         //**********************************************
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (_ListBoxDoEvents)
+            try
             {
-                //if (_lbLastSelectedIndex > -1)
-                //    SaveValuesForIndex(_lbLastSelectedIndex);
-                if (listView1.SelectedItems.Count > 0 && listView1.SelectedItems[0].Tag != null)
+                if (_ListBoxDoEvents)
                 {
-                    int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
-                    int screenIndex = _screens.GetIndexForWindow(_savedWindows.Props[Index]);
+                    //if (_lbLastSelectedIndex > -1)
+                    //    SaveValuesForIndex(_lbLastSelectedIndex);
+                    if (listView1.SelectedItems.Count > 0 && listView1.SelectedItems[0].Tag != null)
+                    {
+                        int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
+                        int screenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[Index]);
 
-                    ClsWindowProps Win = _savedWindows.Props[Index];
-                    if (Win.Title != null)
-                    {
-                        tbTitle.Text = Win.Title;
-                    }
-                    else
-                    {
-                        tbTitle.Text = "<No title>";
-                    }
-                    tbName.Text = Win.Name;
-                    tbWindowClass.Text = Win.WindowClass;
-                    cbWindowClass.Checked = Win.ConsiderWindowClass;
-                    cbSearchTitle.Checked = Win.SearchTitle;
-                    tbExe.Text = Win.Exe;
-                    cbSearchExe.Checked = Win.SearchExe;
+                        ClsWindowProps Win = _savedWindows.Props[Index];
+                        if (Win.TitleInclude != null)
+                        {
+                            tbTitleInclude.Text = Win.TitleInclude;
+                        }
+                        else
+                        {
+                            tbTitleExclude.Text = "<No title>";
+                        }
+                        if (Win.TitleExclude != null)
+                        {
+                            tbTitleExclude.Text = Win.TitleExclude;
+                        }
+                        else
+                        {
+                            tbTitleInclude.Text = "";
+                        }
+                        if (ClsDebug.Debug)
+                            tbSavedWindowIndex.Text = Index.ToString();
+                        else
+                            tbSavedWindowIndex.Text = "";
+                        tbName.Text = Win.Name;
+                        tbWindowClass.Text = Win.WindowClass;
+                        cbWindowClass.Checked = Win.ConsiderWindowClass;
+                        cbSearchTitleInclude.Checked = Win.SearchTitleInclude;
+                        cbSearchTitleExclude.Checked = Win.SearchTitleExclude;
+                        tbExe.Text = Win.Exe;
+                        cbSearchExe.Checked = Win.SearchExe;
 
-                    cbCustomWidth.Checked = Win.MaxWidth;
-                    if (cbCustomWidth.Checked)
-                    {
-                        tbWidth.Text = _screens.ScreenList[screenIndex].CustomWidth.ToString();
-                        tbLeft.Text = "0";
-                    }
-                    else
-                    {
-                        tbWidth.Text = Win.Width.ToString();
-                        tbLeft.Text = Win.Left.ToString();
-                    }
+                        cbCustomWidth.Checked = Win.MaxWidth;
+                        if (cbCustomWidth.Checked)
+                        {
+                            tbWidth.Text = _screens.ScreenList[screenIndex].CustomWidth.ToString();
+                            tbLeft.Text = "0";
+                        }
+                        else
+                        {
+                            tbWidth.Text = Win.Width.ToString();
+                            tbLeft.Text = Win.Left.ToString();
+                        }
 
-                    cbCustomHeight.Checked = Win.MaxHeight;
-                    if (cbCustomHeight.Checked)
-                    {
-                        tbHeight.Text = _screens.ScreenList[screenIndex].CustomHeight.ToString();
-                        tbTop.Text = "0";
-                    }
-                    else
-                    {
-                        tbHeight.Text = Win.Height.ToString();
-                        tbTop.Text = Win.Top.ToString();
-                    }
+                        cbCustomHeight.Checked = Win.MaxHeight;
+                        if (cbCustomHeight.Checked)
+                        {
+                            tbHeight.Text = _screens.ScreenList[screenIndex].CustomHeight.ToString();
+                            tbTop.Text = "0";
+                        }
+                        else
+                        {
+                            tbHeight.Text = Win.Height.ToString();
+                            tbTop.Text = Win.Top.ToString();
+                        }
 
-                    cbFullScreen.Checked = Win.FullScreen;
-                    cbIgnoreChildWindows.Checked = Win.IgnoreChildWindows;
-                    switch (Win.SearchType)
-                    {
-                        case ClsWindowProps.Full:
-                            radioFull.Checked = true;
-                            break;
-                        case ClsWindowProps.Contains:
-                            radioContains.Checked = true;
-                            break;
-                        case ClsWindowProps.StartsWith:
-                            radioStartsWith.Checked = true;
-                            break;
+                        cbFullScreen.Checked = Win.FullScreen;
+                        cbIgnoreChildWindows.Checked = Win.IgnoreChildWindows;
+                        switch (Win.SearchTypeInclude)
+                        {
+                            case ClsWindowProps.Full:
+                                radioFullInclude.Checked = true;
+                                break;
+                            case ClsWindowProps.Contains:
+                                radioContainsInclude.Checked = true;
+                                break;
+                            case ClsWindowProps.StartsWith:
+                                radioStartsWithInclude.Checked = true;
+                                break;
+                        }
+                        switch (Win.SearchTypeExclude)
+                        {
+                            case ClsWindowProps.Full:
+                                radioFullExclude.Checked = true;
+                                break;
+                            case ClsWindowProps.Contains:
+                                radioContainsExclude.Checked = true;
+                                break;
+                            case ClsWindowProps.StartsWith:
+                                radioStartsWithExclude.Checked = true;
+                                break;
+                        }
                     }
                 }
             }
-            //_lbLastSelectedIndex = listView1.SelectedItems[0].Index;
+            catch
+            (Exception ex)
+            {
+                ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "");
+            }
+
         }
 
         //**********************************************
@@ -394,8 +400,10 @@ namespace WinSize4
             {
                 _savedWindows.Props[index].Name = tbName.Text;
                 _savedWindows.Props[index].ConsiderWindowClass = cbWindowClass.Checked;
-                _savedWindows.Props[index].Title = tbTitle.Text;
-                _savedWindows.Props[index].SearchTitle = cbSearchTitle.Checked;
+                _savedWindows.Props[index].TitleInclude = tbTitleInclude.Text;
+                _savedWindows.Props[index].TitleExclude = tbTitleExclude.Text;
+                _savedWindows.Props[index].SearchTitleInclude = cbSearchTitleInclude.Checked;
+                _savedWindows.Props[index].SearchTitleExclude = cbSearchTitleExclude.Checked;
                 _savedWindows.Props[index].Exe = tbExe.Text;
                 _savedWindows.Props[index].SearchExe = cbSearchExe.Checked;
                 if (!cbCustomWidth.Checked)
@@ -412,12 +420,18 @@ namespace WinSize4
                 _savedWindows.Props[index].MaxHeight = cbCustomHeight.Checked;
                 _savedWindows.Props[index].FullScreen = cbFullScreen.Checked;
                 _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
-                if (radioFull.Checked)
-                    _savedWindows.Props[index].SearchType = ClsWindowProps.Full;
-                if (radioContains.Checked)
-                    _savedWindows.Props[index].SearchType = ClsWindowProps.Contains;
-                if (radioStartsWith.Checked)
-                    _savedWindows.Props[index].SearchType = ClsWindowProps.StartsWith;
+                if (radioFullInclude.Checked)
+                    _savedWindows.Props[index].SearchTypeInclude = ClsWindowProps.Full;
+                if (radioContainsInclude.Checked)
+                    _savedWindows.Props[index].SearchTypeInclude = ClsWindowProps.Contains;
+                if (radioStartsWithInclude.Checked)
+                    _savedWindows.Props[index].SearchTypeInclude = ClsWindowProps.StartsWith;
+                if (radioFullExclude.Checked)
+                    _savedWindows.Props[index].SearchTypeExclude = ClsWindowProps.Full;
+                if (radioContainsExclude.Checked)
+                    _savedWindows.Props[index].SearchTypeExclude = ClsWindowProps.Contains;
+                if (radioStartsWithExclude.Checked)
+                    _savedWindows.Props[index].SearchTypeExclude = ClsWindowProps.StartsWith;
             }
         }
 
@@ -435,7 +449,7 @@ namespace WinSize4
                     .AddArgument("action", "viewConversation")
                     .AddArgument("conversationId", 9813)
                     .AddText("Could not register hot key listener")
-                    //.AddText(_savedWindows.Props[_savedWindows.Props.Count - 1].Title)
+                    //.AddText(_savedWindows.Props[_savedWindows.Props.Count - 1].TitleInclude)
                     .Show();
             }
         }
@@ -589,7 +603,7 @@ namespace WinSize4
             int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
             if (cbCustomWidth.Checked || cbFullScreen.Checked)
             {
-                int screenIndex = _screens.GetIndexForWindow(_savedWindows.Props[Index]);
+                int screenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[Index]);
                 tbWidth.Text = _screens.ScreenList[screenIndex].CustomWidth.ToString();
                 tbLeft.Text = "0";
                 tbWidth.Enabled = false;
@@ -610,7 +624,7 @@ namespace WinSize4
             int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
             if (cbCustomHeight.Checked || cbFullScreen.Checked)
             {
-                int screenIndex = _screens.GetIndexForWindow(_savedWindows.Props[Index]);
+                int screenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[Index]);
                 tbHeight.Text = _screens.ScreenList[screenIndex].CustomHeight.ToString();
                 tbTop.Text = "0";
                 tbHeight.Enabled = false;
@@ -662,20 +676,46 @@ namespace WinSize4
             _dirty = true;
         }
 
-        private void cbSearchTitle_CheckedChanged(object sender, EventArgs e)
+        private void cbSearchTitleInclude_CheckedChanged(object sender, EventArgs e)
         {
             int Index;
             if (listView1.SelectedItems.Count > 0)
                 Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
             else
                 Index = 0;
-            tbTitle.Enabled = cbSearchTitle.Checked;
-            radioFull.Enabled = cbSearchTitle.Checked;
-            radioContains.Enabled = cbSearchTitle.Checked;
-            radioStartsWith.Enabled = cbSearchTitle.Checked;
-            if (!cbSearchTitle.Checked)
+            tbTitleInclude.Enabled = cbSearchTitleInclude.Checked;
+            radioFullInclude.Enabled = cbSearchTitleInclude.Checked;
+            radioContainsInclude.Enabled = cbSearchTitleInclude.Checked;
+            radioStartsWithInclude.Enabled = cbSearchTitleInclude.Checked;
+            if (!cbSearchTitleInclude.Checked)
                 cbSearchExe.Checked = true;
             _dirty = true;
+        }
+
+        private void cbSearchTitleExclude_CheckedChanged(object sender, EventArgs e)
+        {
+            int Index;
+            if (listView1.SelectedItems.Count > 0)
+                Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
+            else
+                Index = 0;
+            tbTitleExclude.Enabled = cbSearchTitleExclude.Checked;
+            radioFullExclude.Enabled = cbSearchTitleExclude.Checked;
+            radioContainsExclude.Enabled = cbSearchTitleExclude.Checked;
+            radioStartsWithExclude.Enabled = cbSearchTitleExclude.Checked;
+            if (!cbSearchTitleExclude.Checked)
+                cbSearchExe.Checked = true;
+            _dirty = true;
+        }
+
+        private void tbTitleInclude_TextChanged(object sender, EventArgs e)
+        {
+            radioContainsInclude.Checked = true;
+        }
+
+        private void tbTitleExclude_TextChanged(object sender, EventArgs e)
+        {
+            radioContainsExclude.Checked = true;
         }
 
         private void cbSearchExe_CheckedChanged(object sender, EventArgs e)
@@ -688,13 +728,19 @@ namespace WinSize4
             //_savedWindows.Props[Index].SearchExe = cbSearchExe.Checked;
             tbExe.Enabled = cbSearchExe.Checked;
             if (!cbSearchExe.Checked)
-                cbSearchTitle.Checked = true;
+                cbSearchTitleInclude.Checked = true;
             _dirty = true;
         }
 
         private void butResetMoved_Click(object sender, EventArgs e)
         {
             _currentWindows.ResetMoved();
+        }
+
+        private void butShow_Click(object sender, EventArgs e)
+        {
+            allowVisible = true;
+            Show();
         }
 
         private void butRemove_Click(object sender, EventArgs e)
@@ -772,23 +818,6 @@ namespace WinSize4
             //notifyIcon1.Visible = false;
         }
 
-        private void radio_CheckedChanged(object sender, EventArgs e)
-        {
-            int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
-            switch (((System.Windows.Forms.RadioButton)sender).Name)
-            {
-                case "radioFull":
-                    //_savedWindows.Props[Index].SearchType = ClsWindowProps.Full;
-                    break;
-                case "radioContains":
-                    //_savedWindows.Props[Index].SearchType = ClsWindowProps.Contains;
-                    break;
-                case "radioStartsWith":
-                    //_savedWindows.Props[Index].SearchType = ClsWindowProps.StartsWith;
-                    break;
-            }
-        }
-
         private void cbShowAllWindows_CheckedChanged(object sender, EventArgs e)
         {
             _settings.showAllWindows = cbShowAllWindows.Checked;
@@ -817,6 +846,16 @@ namespace WinSize4
             SetStartup();
         }
 
+        protected override void SetVisibleCore(bool value)
+        {
+            if (!allowVisible)
+            {
+                value = false;
+                if (!this.IsHandleCreated) CreateHandle();
+            }
+            base.SetVisibleCore(value);
+        }
+
         private void checkBox_MouseHover(object sender, EventArgs e)
         {
             if (((CheckBox)sender).Name == "cbFullScreen")
@@ -827,6 +866,17 @@ namespace WinSize4
                 toolTip1.SetToolTip(cbCustomHeight, "Size the selected window to the custom height");
             if (((CheckBox)sender).Name == "cbResetIfNewScreen")
                 toolTip1.SetToolTip(cbResetIfNewScreen, "Resize all windows if a new screen is added or removed");
+        }
+        private void listView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                var focusedItem = listView1.FocusedItem;
+                if (focusedItem != null && focusedItem.Bounds.Contains(e.Location))
+                {
+                    contextMenuStrip1.Show(Cursor.Position);
+                }
+            }
         }
 
         //**********************************************
@@ -847,5 +897,13 @@ namespace WinSize4
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int processId);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        static extern IntPtr GetParent(IntPtr hWnd);
+
+        private void groupBox2_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }

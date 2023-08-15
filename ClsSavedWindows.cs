@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using WinSize4;
+using static System.Net.Mime.MediaTypeNames;
 
 public class ClsSavedWindows
 {
@@ -31,60 +32,15 @@ public class ClsSavedWindows
     }
 
     //**********************************************
-    /// <summary>Sets properties for the supplied window handle</summary>
-    /// <param name="hWnd"></param>
-    //**********************************************
-    public void SetWindowProperties(long hWnd, List<ClsScreenList> CurrentScreenList, int screenCurrentIndex)
-    {
-        var props = new ClsWindowProps();
-
-        int length = GetWindowTextLength((IntPtr)hWnd);
-        var builder = new StringBuilder(length);
-        GetWindowText((IntPtr)hWnd, builder, length + 1);
-        props.Title = builder.ToString();
-
-        GetWindowThreadProcessId((IntPtr)hWnd, out int ProcIdXL);
-        Process xproc = Process.GetProcessById(ProcIdXL);
-        if (xproc is null)
-        {
-            props.Exe = "";
-        }
-        else
-        {
-            props.Exe = xproc.ProcessName;
-        }
-
-        int index = GetIndex(props, CurrentScreenList, screenCurrentIndex);
-        if (index > -1)
-        {
-
-            Screen _screen = Screen.FromHandle((IntPtr)hWnd);
-            props.MonitorBoundsWidth = _screen.Bounds.Width;
-            props.MonitorBoundsHeight = _screen.Bounds.Height;
-
-            var rect = new Rectangle();
-            GetWindowRect((IntPtr)hWnd, ref rect);
-
-            props.Top = rect.Top;
-            props.Left = rect.Left;
-
-            props.Width = rect.Width - rect.Left;
-            props.Height = rect.Height - rect.Top;
-
-            this.Props[index] = props;
-        }
-    }
-
-    //**********************************************
     /// <summary>Updates properties for the supplied window properties</summary>
-    /// <param name="ClsWindowProps"></param>
+    /// <param name="ClsSavedWindowProps"></param>
     /// <returns>True if a window is updated, false if window is not found</returns>
     //**********************************************
 
     public bool UpdateWindowProperties(ClsWindowProps Props, List<ClsScreenList> CurrentScreenList, int screenCurrentIndex)
     {
         bool Found = false;
-        int Index = GetIndex(Props, CurrentScreenList, screenCurrentIndex);
+        int Index = GetIndexCurrentScreen(Props, CurrentScreenList, screenCurrentIndex);
         if (Index > -1)
         {
             Found = true;
@@ -100,12 +56,12 @@ public class ClsSavedWindows
     }
 
     //**********************************************
-    /// <summary> Finds the first window with the supplied data, or -1 </summary>
+    /// <summary> Finds the window with the supplied data in the current screen, or -1 </summary>
     /// <param name="ClsWindowProps, ClsScreenList"></param>
     /// <returns>Index</returns>
     //**********************************************
-    //public int GetIndex(ClsWindowProps CurrentWindowProps)
-    public int GetIndex(ClsWindowProps CurrentWindowProps, List<ClsScreenList> CurrentScreenList, int screenCurrentIndex)
+    //public int GetIndexCurrentScreen(ClsWindowProps CurrentWindowProps)
+    public int GetIndexCurrentScreen(ClsWindowProps CurrentWindowProps, List<ClsScreenList> CurrentScreenList, int screenCurrentIndex)
     {
         int result = -1;
 
@@ -114,18 +70,18 @@ public class ClsSavedWindows
         for (int i = 0; i < this.Props.Count; i++)
         {
             bool FoundTitle = true;
-            if (this.Props[i].SearchTitle)
+            if (this.Props[i].SearchTitleInclude)
             {
-                switch (this.Props[i].SearchType)
+                switch (this.Props[i].SearchTypeInclude)
                 {
                     case ClsWindowProps.Full:
-                        FoundTitle = (CurrentWindowProps.Title == this.Props[i].Title);
+                        FoundTitle = (CurrentWindowProps.TitleInclude == this.Props[i].TitleInclude);
                         break;
                     case ClsWindowProps.Contains:
-                        FoundTitle = CurrentWindowProps.Title.Contains(this.Props[i].Title);
+                        FoundTitle = CurrentWindowProps.TitleInclude.Contains(this.Props[i].TitleInclude);
                         break;
                     case ClsWindowProps.StartsWith:
-                        FoundTitle = CurrentWindowProps.Title.StartsWith(this.Props[i].Title);
+                        FoundTitle = CurrentWindowProps.TitleInclude.StartsWith(this.Props[i].TitleInclude);
                         break;
                 }
             }
@@ -136,63 +92,168 @@ public class ClsSavedWindows
             if (this.Props[i].ConsiderWindowClass)
                 FoundWindowClass = (CurrentWindowProps.WindowClass == this.Props[i].WindowClass);
 
-            if (FoundTitle &&
-                FoundExe &&
-                FoundWindowClass &&
-                this.Props[i].MonitorBoundsWidth == CurrentWindowProps.MonitorBoundsWidth &&
-                this.Props[i].MonitorBoundsHeight == CurrentWindowProps.MonitorBoundsHeight &&
-                this.Props[i].Primary == CurrentWindowProps.Primary)
+            if (FoundTitle && FoundExe && FoundWindowClass)
             {
                 matchingSavedWindows.Add(this.Props[i]);
+            }
+        }
+        for (int i = 0; i < matchingSavedWindows.Count; i++)
+        {
+            if (matchingSavedWindows[i].MonitorBoundsWidth == CurrentScreenList[screenCurrentIndex].BoundsWidth &&
+                matchingSavedWindows[i].MonitorBoundsHeight == CurrentScreenList[screenCurrentIndex].BoundsHeight &&
+                matchingSavedWindows[i].Primary == CurrentScreenList[screenCurrentIndex].Primary)
+            {
+                result = GetWindowIndexByTag(matchingSavedWindows[i].Tag);
+                break;
+            }
+        }
+        return result;
+    }
 
+    //**********************************************
+    /// <summary> Finds the first window with the supplied data, or -1 </summary>
+    /// <param name="ClsWindowProps, ClsScreenList"></param>
+    /// <returns>Index</returns>
+    //**********************************************
+    //public int GetIndexAllScreens(ClsWindowProps CurrentWindowProps)
+    public int GetIndexAllScreens(ClsWindowProps WindowProps, List<ClsScreenList> ScreenList, int ScreenIndex)
+    {
+        int result = -1;
+
+        ClsDebug.AddText("GetIndexAllScreens: " + WindowProps.Title);
+        // Get list of matching saved windows
+        List<ClsWindowProps> matchingSavedWindows = new List<ClsWindowProps>();
+        for (int i = 0; i < this.Props.Count; i++)
+        {
+            bool FoundTitleInclude = true;
+            if (this.Props[i].SearchTitleInclude)
+            {
+                FoundTitleInclude = false;
+                switch (this.Props[i].SearchTypeInclude)
+                {
+                    case ClsWindowProps.Full:
+                        FoundTitleInclude = (WindowProps.Title == this.Props[i].TitleInclude);
+                        break;
+                    case ClsWindowProps.Contains:
+                        if (WindowProps.Title.Contains("Loading"))
+                            Console.WriteLine(WindowProps.Title);
+                        foreach (string titleInclude in (this.Props[i].TitleInclude).Split('|'))
+                        {
+                            if (WindowProps.Title.Contains(titleInclude))
+                            {
+                                FoundTitleInclude = true;
+                                break;
+                            }
+                        }
+                        break;
+                    case ClsWindowProps.StartsWith:
+                        foreach (string titleInclude in (this.Props[i].TitleInclude).Split('|'))
+                        {
+                            if (WindowProps.Title.StartsWith(titleInclude)) {
+                                FoundTitleInclude = true;
+                                break;
+                            }
+                        }
+                        break;
+                }
+            }
+            bool FoundTitleExclude = false;
+            if (this.Props[i].SearchTitleExclude)
+            {
+                switch (this.Props[i].SearchTypeExclude)
+                {
+                    case ClsWindowProps.Full:
+                        FoundTitleExclude = (WindowProps.Title == this.Props[i].TitleExclude);
+                        break;
+                    case ClsWindowProps.Contains:
+                        //FoundTitleExclude = WindowProps.Title.Contains(this.Props[i].TitleExclude);
+                        foreach (string titleExclude in (this.Props[i].TitleExclude).Split('|'))
+                        {
+                            if (WindowProps.Title.Contains(titleExclude)) {
+                                FoundTitleExclude = true;
+                                break;
+                            }
+                        }
+                        break;
+                    case ClsWindowProps.StartsWith:
+                        //FoundTitleExclude = WindowProps.Title.StartsWith(this.Props[i].TitleExclude);
+                        foreach (string titleExclude in (this.Props[i].TitleExclude).Split('|'))
+                        {
+                            if (WindowProps.Title.StartsWith(titleExclude)) {
+                                FoundTitleExclude = true;
+                                break;
+                            }
+                        }
+                        break;
+                }
+            }
+            bool FoundExe = true;
+            if (this.Props[i].SearchExe)
+                FoundExe = (WindowProps.Exe == this.Props[i].Exe);
+            bool FoundWindowClass = true;
+            if (this.Props[i].ConsiderWindowClass)
+                FoundWindowClass = (WindowProps.WindowClass == this.Props[i].WindowClass);
+
+            if (FoundTitleInclude && !FoundTitleExclude && FoundExe && FoundWindowClass)
+            {
+                matchingSavedWindows.Add(this.Props[i]);
             }
         }
 
         for (int i = 0; i < matchingSavedWindows.Count; i++)
         {
-            for (int j = 0; j < CurrentScreenList.Count; j++)
+            for (int j = 0; j < ScreenList.Count; j++)
             {
                 // Another screen than current and not primary
-                if (matchingSavedWindows[i].MonitorBoundsWidth == CurrentScreenList[j].BoundsWidth &&
-                    matchingSavedWindows[i].MonitorBoundsHeight == CurrentScreenList[j].BoundsHeight &&
-                    matchingSavedWindows[i].Primary == CurrentScreenList[j].Primary &&
-                    j != screenCurrentIndex && CurrentScreenList[j].Primary == false)
+                if (matchingSavedWindows[i].MonitorBoundsWidth == ScreenList[j].BoundsWidth &&
+                    matchingSavedWindows[i].MonitorBoundsHeight == ScreenList[j].BoundsHeight &&
+                    matchingSavedWindows[i].Primary == ScreenList[j].Primary &&
+                    j != ScreenIndex &&
+                    ScreenList[j].Primary == false &&
+                    ScreenList[j].Present)
                 {
-                    result = i;
-                    break;
-                }
-            }
-        }
-        for (int i = 0; i < matchingSavedWindows.Count; i++)
-        {
-            for (int j = 0; j < CurrentScreenList.Count; j++)
-            {
-                // Another screen than current and primary
-                if (matchingSavedWindows[i].MonitorBoundsWidth == CurrentScreenList[j].BoundsWidth &&
-                    matchingSavedWindows[i].MonitorBoundsHeight == CurrentScreenList[j].BoundsHeight &&
-                    matchingSavedWindows[i].Primary == CurrentScreenList[j].Primary &&
-                    j != screenCurrentIndex && CurrentScreenList[j].Primary == true)
-                {
-                    result = i;
-                    break;
-                }
-            }
-        }
-        for (int i = 0; i < matchingSavedWindows.Count; i++)
-        {
-            for (int j = 0; j < CurrentScreenList.Count; j++)
-            {
-                // This screen matches
-                if (matchingSavedWindows[i].MonitorBoundsWidth == CurrentScreenList[j].BoundsWidth &&
-                    matchingSavedWindows[i].MonitorBoundsHeight == CurrentScreenList[j].BoundsHeight &&
-                    matchingSavedWindows[i].Primary == CurrentScreenList[j].Primary &&
-                    j == screenCurrentIndex)
-                {
+                    ClsDebug.AddText("  Another screen than current and not primary (" + j + ")");
                     result = GetWindowIndexByTag(matchingSavedWindows[i].Tag);
                     break;
                 }
             }
         }
+        for (int i = 0; i < matchingSavedWindows.Count; i++)
+        {
+            for (int j = 0; j < ScreenList.Count; j++)
+            {
+                // Another screen than current and primary
+                if (matchingSavedWindows[i].MonitorBoundsWidth == ScreenList[j].BoundsWidth &&
+                    matchingSavedWindows[i].MonitorBoundsHeight == ScreenList[j].BoundsHeight &&
+                    matchingSavedWindows[i].Primary == ScreenList[j].Primary &&
+                    j != ScreenIndex &&
+                    ScreenList[j].Primary == true &&
+                    ScreenList[j].Present)
+                {
+                    ClsDebug.AddText("  Another screen than current and primary (" + j + ")");
+                    result = GetWindowIndexByTag(matchingSavedWindows[i].Tag);
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < matchingSavedWindows.Count; i++)
+        {
+            for (int j = 0; j < ScreenList.Count; j++)
+            {
+                // This screen matches
+                if (matchingSavedWindows[i].MonitorBoundsWidth == ScreenList[j].BoundsWidth &&
+                    matchingSavedWindows[i].MonitorBoundsHeight == ScreenList[j].BoundsHeight &&
+                    matchingSavedWindows[i].Primary == ScreenList[j].Primary &&
+                    ScreenList[j].Present &&
+                    j == ScreenIndex)
+                {
+                    ClsDebug.AddText("  This screen matches (" + j + ")");
+                    result = GetWindowIndexByTag(matchingSavedWindows[i].Tag);
+                    break;
+                }
+            }
+        }
+        ClsDebug.AddText("  Saved window index chosen: " + result);
         return result;
     }
 
@@ -212,39 +273,9 @@ public class ClsSavedWindows
     }
 
     //**********************************************
-    /// <summary> Get the window with the supplied Tag </summary>
-    /// <param name="Tag"></param>
-    /// <returns>ClsWindowProps</returns>
+    /// <summary> Saves data to disk </summary>
     //**********************************************
-    public ClsWindowProps GetWindowByTag(int Tag)
-    {
-        for (int i = 0; i < Props.Count; i++)
-        {
-            if (Props[i].Tag == Tag)
-                return Props[i];
-        }
-        return new ClsWindowProps();
-    }
-
-    //**********************************************
-    /// <summary> Finds the next available tag </summary>
-    /// <returns>Tag</returns>
-    //**********************************************
-    private int FindNextTag()
-    {
-        int max = 0;
-        for (int i = 0; i < this.Props.Count; i++)
-        {
-            if (this.Props[i].Tag > max)
-                max = this.Props[i].Tag;
-        }
-        return max + 1;
-    }
-
-        //**********************************************
-        /// <summary> Saves data to disk </summary>
-        //**********************************************
-        public void Save()
+    public void Save()
     {
         string fileNameWindows;
         var options = new JsonSerializerOptions()
@@ -346,5 +377,4 @@ public class ClsSavedWindows
 
     [DllImport("user32.dll")]
     static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
-
 }

@@ -8,26 +8,25 @@ namespace WinSize4
 {
     public class ClsScreens
     {
-        //**********************************************
-        /// <summary> AddWindow Screen to list of screens </summary>
-        /// <param name="screen"></param>
-        //**********************************************
-        public void Add(ClsScreenList screen)
-        {
-            this.ScreenList.Add(screen);
-        }
+        public List<ClsScreenList> ScreenList = new List<ClsScreenList>();
+        private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+        private string _fileNameWindows = "Screens.json";
 
         //**********************************************
         /// <summary> Get all current screens </summary>
+        /// <returns>True if a screen is added</returns>
         //**********************************************
-        public void GetScreens()
+        public bool AddNewScreens()
         {
+            bool Added = false;
             foreach (Screen screen in Screen.AllScreens)
             {
                 bool found = false;
                 foreach (ClsScreenList savedScreen in ScreenList)
                 {
-                    if (savedScreen.BoundsWidth == screen.Bounds.Width && savedScreen.BoundsHeight == screen.Bounds.Height && savedScreen.Primary == screen.Primary)
+                    if (savedScreen.BoundsWidth == screen.Bounds.Width &&
+                        savedScreen.BoundsHeight == screen.Bounds.Height &&
+                        savedScreen.Primary == screen.Primary)
                     {
                         found = true;
                         break;
@@ -49,74 +48,77 @@ namespace WinSize4
                         Y = screen.Bounds.Y,
                         Primary = screen.Primary
                     };
+                    ClsDebug.LogNow("AddNewScreens: New screen added " + screen.Bounds.Width + " " + screen.Bounds.Height + " " + screen.Primary);
                     this.ScreenList.Add(_newScreen);
+                    Added = true;
                 }
             }
+            return Added;
         }
 
-        public List<ClsScreenList> ScreenList = new List<ClsScreenList>();
-        private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-        private string _fileNameWindows = "Screens.json";
-
         //**********************************************
-        /// <summary> Get index in ScreenList for the supplied ClsWindowProps </summary>
+        /// <summary> Get index in ScreenList for the supplied ClsCurrentWindowProps </summary>
         //**********************************************
-        public int GetIndexForWindow(ClsWindowProps WindowProps)
+        public int GetScreenIndexForWindow(ClsWindowProps Props)
         {
             int index = -1;
             for (int i = 0; i < this.ScreenList.Count; i++)
             {
-                if (this.ScreenList[i].BoundsWidth == WindowProps.MonitorBoundsWidth &&
-                    this.ScreenList[i].BoundsHeight == WindowProps.MonitorBoundsHeight &&
-                    this.ScreenList[i].Primary == WindowProps.Primary)
+                if (this.ScreenList[i].BoundsWidth == Props.MonitorBoundsWidth &&
+                    this.ScreenList[i].BoundsHeight == Props.MonitorBoundsHeight &&
+                    this.ScreenList[i].Primary == Props.Primary)
                 {
                     index = i;
                     break;
                 }
             }
-            return index;
-        }
-
-        //**********************************************
-        /// <summary> Get index in ScreenList for the supplied ClsScreenList </summary>
-        //**********************************************
-        public int GetIndexForScreen(ClsScreenList ScreenList)
-        {
-            int index = -1;
-            for (int i = 0; i < this.ScreenList.Count; i++)
-            {
-                if (this.ScreenList[i].BoundsWidth == ScreenList.BoundsWidth &&
-                    this.ScreenList[i].BoundsHeight == ScreenList.BoundsHeight &&
-                    this.ScreenList[i].Primary == ScreenList.Primary)
-                {
-                    index = i;
-                    break;
-                }
-            }
+            ClsDebug.AddText("GetScreenIndexForWindow: " + index);
             return index;
         }
 
         //**********************************************
         /// <summary>Marks screens as present</summary>
+        /// <returns>True if screen presence has changed</returns>
         //**********************************************
-        public void SetPresent()
+        public bool SetPresent()
         {
-            foreach (ClsScreenList Screen in this.ScreenList)
+            bool Changed = false;
+            Screen[] AllScreens = System.Windows.Forms.Screen.AllScreens;
+            //foreach (ClsScreenList Screen in this.ScreenList)
+            for (int i = 0; i < this.ScreenList.Count; i++)
             {
-                foreach (Screen CurrentScreen in System.Windows.Forms.Screen.AllScreens)
+                //foreach (Screen CurrentScreen in AllScreens)
+                bool Found = false;
+                for (int j = 0; j < AllScreens.Length; j++)
                 {
-                    if (Screen.BoundsWidth == CurrentScreen.Bounds.Width &&
-                        Screen.BoundsHeight == CurrentScreen.Bounds.Height &&
-                        Screen.Primary == CurrentScreen.Primary)
+                    if (this.ScreenList[i].BoundsWidth == AllScreens[j].Bounds.Width &&
+                        this.ScreenList[i].BoundsHeight == AllScreens[j].Bounds.Height &&
+                        this.ScreenList[i].Primary == AllScreens[j].Primary)
                     {
-                        Screen.Present = true;
-                    }
-                    else
-                    {
-                        Screen.Present = false;
+                        Found = true;
+                        break;
                     }
                 }
+                if (Found)
+                {
+                    if (this.ScreenList[i].Present == false)
+                    {
+                        Changed = true;
+                        ClsDebug.LogNow("SetPresent: Screen " + i + " is now present");
+                    }
+                    this.ScreenList[i].Present = true;
+                }
+                else
+                {
+                    if (this.ScreenList[i].Present == true)
+                    {
+                        Changed = true;
+                        ClsDebug.LogNow("SetPresent: Screen " + i + " is no longer present");
+                    }
+                    this.ScreenList[i].Present = false;
+                }
             }
+            return Changed;
         }
 
         //**********************************************
@@ -125,7 +127,7 @@ namespace WinSize4
         //**********************************************
         public bool CleanScreenList()
         {
-            GetScreens();
+            AddNewScreens();
             bool Deleted = false;
             Screen[] CurrentScreens = Screen.AllScreens;
             //foreach (ClsScreenList ListScr in this.ScreenList)
@@ -143,6 +145,7 @@ namespace WinSize4
                 }
                 if (!Found)
                 {
+                    ClsDebug.LogNow("CleanScreenList: Screen deleted " + this.ScreenList[i].BoundsWidth + " " + this.ScreenList[i].BoundsHeight + "" + this.ScreenList[i].Primary);
                     this.ScreenList.RemoveAt(i);
                     Deleted = true;
                 }

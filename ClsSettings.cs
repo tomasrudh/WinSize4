@@ -16,6 +16,8 @@ namespace WinSize4
         public bool runAtLogin = false;
         private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
         private string _fileNameWindows = "Settings.json";
+        public bool Debug = false;
+        public int Interval = 500;
 
         //**********************************************
         /// <summary> Saves data to disk </summary>
@@ -29,6 +31,8 @@ namespace WinSize4
             saveList.showAllWindows = this.showAllWindows;
             saveList.resetIfNewScreen = this.resetIfNewScreen;
             saveList.runAtLogin = this.runAtLogin;
+            saveList.Debug = ClsDebug.Debug;
+            saveList.Interval = this.Interval;
 
             var options = new JsonSerializerOptions()
             {
@@ -64,6 +68,9 @@ namespace WinSize4
                     this.showAllWindows = saveList.showAllWindows;
                     this.resetIfNewScreen = saveList.resetIfNewScreen;
                     this.runAtLogin = saveList.runAtLogin;
+                    ClsDebug.Debug = saveList.Debug;
+                    if (saveList.Interval > 0)
+                        this.Interval = saveList.Interval;
                 }
             }
             catch (Exception e)
@@ -116,6 +123,10 @@ namespace WinSize4
         public bool resetIfNewScreen
         { set; get; }
         public bool runAtLogin
+        { set; get; }
+        public bool Debug
+        { set; get; }
+        public int Interval
         { set; get; }
     }
 }

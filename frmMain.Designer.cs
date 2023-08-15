@@ -31,8 +31,6 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             timer1 = new System.Windows.Forms.Timer(components);
-            tbTitle = new TextBox();
-            label1 = new Label();
             label2 = new Label();
             tbExe = new TextBox();
             butOK = new Button();
@@ -53,7 +51,6 @@
             butCancel = new Button();
             butEditScreens = new Button();
             cbSearchExe = new CheckBox();
-            cbSearchTitle = new CheckBox();
             groupBox1 = new GroupBox();
             tbHotKeyCharacter = new TextBox();
             cbHotKeyRight = new ComboBox();
@@ -63,13 +60,23 @@
             tbName = new TextBox();
             cbResetIfNewScreen = new CheckBox();
             groupBox2 = new GroupBox();
+            groupBox4 = new GroupBox();
+            radioStartsWithInclude = new RadioButton();
+            radioContainsInclude = new RadioButton();
+            radioFullInclude = new RadioButton();
+            tbTitleInclude = new TextBox();
+            cbSearchTitleInclude = new CheckBox();
+            groupBox3 = new GroupBox();
+            radioStartsWithExclude = new RadioButton();
+            radioContainsExclude = new RadioButton();
+            radioFullExclude = new RadioButton();
+            tbTitleExclude = new TextBox();
+            cbSearchTitleExclude = new CheckBox();
+            tbSavedWindowIndex = new Label();
             tbWindowClass = new TextBox();
             label8 = new Label();
             cbWindowClass = new CheckBox();
             cbIgnoreChildWindows = new CheckBox();
-            radioStartsWith = new RadioButton();
-            radioContains = new RadioButton();
-            radioFull = new RadioButton();
             butResetMoved = new Button();
             toolTip1 = new ToolTip(components);
             listView1 = new ListView();
@@ -79,8 +86,11 @@
             columnHeader4 = new ColumnHeader();
             cbShowAllWindows = new CheckBox();
             cbRunAtLogin = new CheckBox();
+            contextMenuStrip1 = new ContextMenuStrip(components);
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
+            groupBox4.SuspendLayout();
+            groupBox3.SuspendLayout();
             SuspendLayout();
             // 
             // timer1
@@ -89,28 +99,10 @@
             timer1.Interval = 500;
             timer1.Tick += timer1_Tick;
             // 
-            // tbTitle
-            // 
-            tbTitle.Location = new Point(164, 80);
-            tbTitle.Margin = new Padding(4, 3, 4, 3);
-            tbTitle.Name = "tbTitle";
-            tbTitle.Size = new Size(305, 23);
-            tbTitle.TabIndex = 1;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new Point(10, 88);
-            label1.Margin = new Padding(4, 0, 4, 0);
-            label1.Name = "label1";
-            label1.Size = new Size(76, 15);
-            label1.TabIndex = 2;
-            label1.Text = "Window Title";
-            // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(11, 145);
+            label2.Location = new Point(14, 287);
             label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
             label2.Size = new Size(64, 15);
@@ -119,7 +111,7 @@
             // 
             // tbExe
             // 
-            tbExe.Location = new Point(165, 136);
+            tbExe.Location = new Point(168, 278);
             tbExe.Margin = new Padding(4, 3, 4, 3);
             tbExe.Name = "tbExe";
             tbExe.Size = new Size(305, 23);
@@ -127,18 +119,18 @@
             // 
             // butOK
             // 
-            butOK.Location = new Point(543, 512);
+            butOK.Location = new Point(540, 605);
             butOK.Margin = new Padding(4, 3, 4, 3);
             butOK.Name = "butOK";
             butOK.Size = new Size(124, 27);
             butOK.TabIndex = 5;
-            butOK.Text = "Apply and Minimize";
+            butOK.Text = "Apply and Hide";
             butOK.UseVisualStyleBackColor = true;
             butOK.Click += butOK_Click;
             // 
             // butApply
             // 
-            butApply.Location = new Point(768, 512);
+            butApply.Location = new Point(765, 605);
             butApply.Margin = new Padding(4, 3, 4, 3);
             butApply.Name = "butApply";
             butApply.Size = new Size(88, 27);
@@ -149,7 +141,7 @@
             // 
             // butExit
             // 
-            butExit.Location = new Point(862, 512);
+            butExit.Location = new Point(859, 605);
             butExit.Margin = new Padding(4, 3, 4, 3);
             butExit.Name = "butExit";
             butExit.Size = new Size(88, 27);
@@ -160,7 +152,7 @@
             // 
             // butRemove
             // 
-            butRemove.Location = new Point(9, 286);
+            butRemove.Location = new Point(12, 428);
             butRemove.Margin = new Padding(4, 3, 4, 3);
             butRemove.Name = "butRemove";
             butRemove.Size = new Size(136, 27);
@@ -172,7 +164,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(11, 170);
+            label3.Location = new Point(14, 312);
             label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
             label3.Size = new Size(27, 15);
@@ -181,7 +173,7 @@
             // 
             // tbLeft
             // 
-            tbLeft.Location = new Point(165, 166);
+            tbLeft.Location = new Point(168, 308);
             tbLeft.Margin = new Padding(4, 3, 4, 3);
             tbLeft.Name = "tbLeft";
             tbLeft.Size = new Size(131, 23);
@@ -191,7 +183,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(11, 200);
+            label4.Location = new Point(14, 342);
             label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
             label4.Size = new Size(26, 15);
@@ -200,7 +192,7 @@
             // 
             // tbTop
             // 
-            tbTop.Location = new Point(165, 196);
+            tbTop.Location = new Point(168, 338);
             tbTop.Margin = new Padding(4, 3, 4, 3);
             tbTop.Name = "tbTop";
             tbTop.Size = new Size(131, 23);
@@ -210,7 +202,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(11, 235);
+            label5.Location = new Point(14, 377);
             label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
             label5.Size = new Size(39, 15);
@@ -219,7 +211,7 @@
             // 
             // tbWidth
             // 
-            tbWidth.Location = new Point(165, 226);
+            tbWidth.Location = new Point(168, 368);
             tbWidth.Margin = new Padding(4, 3, 4, 3);
             tbWidth.Name = "tbWidth";
             tbWidth.Size = new Size(131, 23);
@@ -229,7 +221,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(11, 265);
+            label6.Location = new Point(14, 407);
             label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
             label6.Size = new Size(43, 15);
@@ -238,7 +230,7 @@
             // 
             // tbHeight
             // 
-            tbHeight.Location = new Point(165, 256);
+            tbHeight.Location = new Point(168, 398);
             tbHeight.Margin = new Padding(4, 3, 4, 3);
             tbHeight.Name = "tbHeight";
             tbHeight.Size = new Size(131, 23);
@@ -248,7 +240,7 @@
             // cbCustomWidth
             // 
             cbCustomWidth.AutoSize = true;
-            cbCustomWidth.Location = new Point(346, 229);
+            cbCustomWidth.Location = new Point(349, 371);
             cbCustomWidth.Margin = new Padding(4, 3, 4, 3);
             cbCustomWidth.Name = "cbCustomWidth";
             cbCustomWidth.Size = new Size(68, 19);
@@ -261,7 +253,7 @@
             // cbCustomHeight
             // 
             cbCustomHeight.AutoSize = true;
-            cbCustomHeight.Location = new Point(346, 260);
+            cbCustomHeight.Location = new Point(349, 402);
             cbCustomHeight.Margin = new Padding(4, 3, 4, 3);
             cbCustomHeight.Name = "cbCustomHeight";
             cbCustomHeight.Size = new Size(68, 19);
@@ -274,7 +266,7 @@
             // cbFullScreen
             // 
             cbFullScreen.AutoSize = true;
-            cbFullScreen.Location = new Point(346, 291);
+            cbFullScreen.Location = new Point(349, 433);
             cbFullScreen.Margin = new Padding(4, 3, 4, 3);
             cbFullScreen.Name = "cbFullScreen";
             cbFullScreen.Size = new Size(82, 19);
@@ -287,18 +279,18 @@
             // butCancel
             // 
             butCancel.DialogResult = DialogResult.Cancel;
-            butCancel.Location = new Point(673, 512);
+            butCancel.Location = new Point(670, 605);
             butCancel.Margin = new Padding(4, 3, 4, 3);
             butCancel.Name = "butCancel";
             butCancel.Size = new Size(88, 27);
             butCancel.TabIndex = 20;
-            butCancel.Text = "Minimize";
+            butCancel.Text = "Hide";
             butCancel.UseVisualStyleBackColor = true;
             butCancel.Click += butCancel_Click;
             // 
             // butEditScreens
             // 
-            butEditScreens.Location = new Point(802, 379);
+            butEditScreens.Location = new Point(811, 535);
             butEditScreens.Margin = new Padding(4, 3, 4, 3);
             butEditScreens.Name = "butEditScreens";
             butEditScreens.Size = new Size(136, 27);
@@ -310,7 +302,7 @@
             // cbSearchExe
             // 
             cbSearchExe.AutoSize = true;
-            cbSearchExe.Location = new Point(128, 146);
+            cbSearchExe.Location = new Point(131, 288);
             cbSearchExe.Margin = new Padding(4, 3, 4, 3);
             cbSearchExe.Name = "cbSearchExe";
             cbSearchExe.Size = new Size(15, 14);
@@ -318,23 +310,12 @@
             cbSearchExe.UseVisualStyleBackColor = true;
             cbSearchExe.CheckedChanged += cbSearchExe_CheckedChanged;
             // 
-            // cbSearchTitle
-            // 
-            cbSearchTitle.AutoSize = true;
-            cbSearchTitle.Location = new Point(128, 89);
-            cbSearchTitle.Margin = new Padding(4, 3, 4, 3);
-            cbSearchTitle.Name = "cbSearchTitle";
-            cbSearchTitle.Size = new Size(15, 14);
-            cbSearchTitle.TabIndex = 37;
-            cbSearchTitle.UseVisualStyleBackColor = true;
-            cbSearchTitle.CheckedChanged += cbSearchTitle_CheckedChanged;
-            // 
             // groupBox1
             // 
             groupBox1.Controls.Add(tbHotKeyCharacter);
             groupBox1.Controls.Add(cbHotKeyRight);
             groupBox1.Controls.Add(cbHotKeyLeft);
-            groupBox1.Location = new Point(463, 423);
+            groupBox1.Location = new Point(463, 513);
             groupBox1.Margin = new Padding(4, 3, 4, 3);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(4, 3, 4, 3);
@@ -406,7 +387,7 @@
             // cbResetIfNewScreen
             // 
             cbResetIfNewScreen.AutoSize = true;
-            cbResetIfNewScreen.Location = new Point(472, 353);
+            cbResetIfNewScreen.Location = new Point(480, 488);
             cbResetIfNewScreen.Margin = new Padding(4, 3, 4, 3);
             cbResetIfNewScreen.Name = "cbResetIfNewScreen";
             cbResetIfNewScreen.Size = new Size(226, 19);
@@ -418,22 +399,19 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(groupBox4);
+            groupBox2.Controls.Add(groupBox3);
+            groupBox2.Controls.Add(tbSavedWindowIndex);
             groupBox2.Controls.Add(tbWindowClass);
             groupBox2.Controls.Add(label8);
             groupBox2.Controls.Add(cbWindowClass);
             groupBox2.Controls.Add(cbIgnoreChildWindows);
-            groupBox2.Controls.Add(radioStartsWith);
-            groupBox2.Controls.Add(radioContains);
-            groupBox2.Controls.Add(radioFull);
             groupBox2.Controls.Add(tbName);
-            groupBox2.Controls.Add(tbTitle);
             groupBox2.Controls.Add(label7);
-            groupBox2.Controls.Add(label1);
             groupBox2.Controls.Add(tbExe);
             groupBox2.Controls.Add(label4);
             groupBox2.Controls.Add(label2);
             groupBox2.Controls.Add(label3);
-            groupBox2.Controls.Add(cbSearchTitle);
             groupBox2.Controls.Add(butRemove);
             groupBox2.Controls.Add(tbLeft);
             groupBox2.Controls.Add(cbSearchExe);
@@ -449,10 +427,155 @@
             groupBox2.Margin = new Padding(4, 3, 4, 3);
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(4, 3, 4, 3);
-            groupBox2.Size = new Size(484, 333);
+            groupBox2.Size = new Size(484, 468);
             groupBox2.TabIndex = 42;
             groupBox2.TabStop = false;
             groupBox2.Text = "Selected window";
+            groupBox2.Enter += groupBox2_Enter;
+            // 
+            // groupBox4
+            // 
+            groupBox4.Controls.Add(radioStartsWithInclude);
+            groupBox4.Controls.Add(radioContainsInclude);
+            groupBox4.Controls.Add(radioFullInclude);
+            groupBox4.Controls.Add(tbTitleInclude);
+            groupBox4.Controls.Add(cbSearchTitleInclude);
+            groupBox4.Location = new Point(10, 84);
+            groupBox4.Name = "groupBox4";
+            groupBox4.Size = new Size(467, 92);
+            groupBox4.TabIndex = 56;
+            groupBox4.TabStop = false;
+            groupBox4.Text = "Window Title Include";
+            // 
+            // radioStartsWithInclude
+            // 
+            radioStartsWithInclude.AutoSize = true;
+            radioStartsWithInclude.Location = new Point(162, 60);
+            radioStartsWithInclude.Margin = new Padding(4, 3, 4, 3);
+            radioStartsWithInclude.Name = "radioStartsWithInclude";
+            radioStartsWithInclude.Size = new Size(80, 19);
+            radioStartsWithInclude.TabIndex = 49;
+            radioStartsWithInclude.Text = "Starts with";
+            radioStartsWithInclude.UseVisualStyleBackColor = true;
+            // 
+            // radioContainsInclude
+            // 
+            radioContainsInclude.AutoSize = true;
+            radioContainsInclude.Location = new Point(82, 60);
+            radioContainsInclude.Margin = new Padding(4, 3, 4, 3);
+            radioContainsInclude.Name = "radioContainsInclude";
+            radioContainsInclude.Size = new Size(72, 19);
+            radioContainsInclude.TabIndex = 48;
+            radioContainsInclude.Text = "Contains";
+            radioContainsInclude.UseVisualStyleBackColor = true;
+            // 
+            // radioFullInclude
+            // 
+            radioFullInclude.AutoSize = true;
+            radioFullInclude.Location = new Point(30, 60);
+            radioFullInclude.Margin = new Padding(4, 3, 4, 3);
+            radioFullInclude.Name = "radioFullInclude";
+            radioFullInclude.Size = new Size(44, 19);
+            radioFullInclude.TabIndex = 47;
+            radioFullInclude.Text = "Full";
+            radioFullInclude.UseVisualStyleBackColor = true;
+            // 
+            // tbTitleInclude
+            // 
+            tbTitleInclude.Location = new Point(30, 31);
+            tbTitleInclude.Margin = new Padding(4, 3, 4, 3);
+            tbTitleInclude.Name = "tbTitleInclude";
+            tbTitleInclude.Size = new Size(433, 23);
+            tbTitleInclude.TabIndex = 44;
+            tbTitleInclude.TextChanged += tbTitleInclude_TextChanged;
+            // 
+            // cbSearchTitleInclude
+            // 
+            cbSearchTitleInclude.AutoSize = true;
+            cbSearchTitleInclude.Location = new Point(7, 35);
+            cbSearchTitleInclude.Margin = new Padding(4, 3, 4, 3);
+            cbSearchTitleInclude.Name = "cbSearchTitleInclude";
+            cbSearchTitleInclude.Size = new Size(15, 14);
+            cbSearchTitleInclude.TabIndex = 46;
+            cbSearchTitleInclude.UseVisualStyleBackColor = true;
+            cbSearchTitleInclude.CheckedChanged += cbSearchTitleInclude_CheckedChanged;
+            // 
+            // groupBox3
+            // 
+            groupBox3.Controls.Add(radioStartsWithExclude);
+            groupBox3.Controls.Add(radioContainsExclude);
+            groupBox3.Controls.Add(radioFullExclude);
+            groupBox3.Controls.Add(tbTitleExclude);
+            groupBox3.Controls.Add(cbSearchTitleExclude);
+            groupBox3.Location = new Point(10, 182);
+            groupBox3.Name = "groupBox3";
+            groupBox3.Size = new Size(467, 90);
+            groupBox3.TabIndex = 55;
+            groupBox3.TabStop = false;
+            groupBox3.Text = "Window Title Exclude";
+            // 
+            // radioStartsWithExclude
+            // 
+            radioStartsWithExclude.AutoSize = true;
+            radioStartsWithExclude.Location = new Point(162, 56);
+            radioStartsWithExclude.Margin = new Padding(4, 3, 4, 3);
+            radioStartsWithExclude.Name = "radioStartsWithExclude";
+            radioStartsWithExclude.Size = new Size(80, 19);
+            radioStartsWithExclude.TabIndex = 60;
+            radioStartsWithExclude.Text = "Starts with";
+            radioStartsWithExclude.UseVisualStyleBackColor = true;
+            // 
+            // radioContainsExclude
+            // 
+            radioContainsExclude.AutoSize = true;
+            radioContainsExclude.Location = new Point(82, 56);
+            radioContainsExclude.Margin = new Padding(4, 3, 4, 3);
+            radioContainsExclude.Name = "radioContainsExclude";
+            radioContainsExclude.Size = new Size(72, 19);
+            radioContainsExclude.TabIndex = 59;
+            radioContainsExclude.Text = "Contains";
+            radioContainsExclude.UseVisualStyleBackColor = true;
+            // 
+            // radioFullExclude
+            // 
+            radioFullExclude.AutoSize = true;
+            radioFullExclude.Location = new Point(30, 56);
+            radioFullExclude.Margin = new Padding(4, 3, 4, 3);
+            radioFullExclude.Name = "radioFullExclude";
+            radioFullExclude.Size = new Size(44, 19);
+            radioFullExclude.TabIndex = 58;
+            radioFullExclude.Text = "Full";
+            radioFullExclude.UseVisualStyleBackColor = true;
+            // 
+            // tbTitleExclude
+            // 
+            tbTitleExclude.Location = new Point(30, 27);
+            tbTitleExclude.Margin = new Padding(4, 3, 4, 3);
+            tbTitleExclude.Name = "tbTitleExclude";
+            tbTitleExclude.Size = new Size(433, 23);
+            tbTitleExclude.TabIndex = 55;
+            tbTitleExclude.TextChanged += tbTitleExclude_TextChanged;
+            // 
+            // cbSearchTitleExclude
+            // 
+            cbSearchTitleExclude.AutoSize = true;
+            cbSearchTitleExclude.Location = new Point(7, 31);
+            cbSearchTitleExclude.Margin = new Padding(4, 3, 4, 3);
+            cbSearchTitleExclude.Name = "cbSearchTitleExclude";
+            cbSearchTitleExclude.Size = new Size(15, 14);
+            cbSearchTitleExclude.TabIndex = 57;
+            cbSearchTitleExclude.UseVisualStyleBackColor = true;
+            cbSearchTitleExclude.CheckedChanged += cbSearchTitleExclude_CheckedChanged;
+            // 
+            // tbSavedWindowIndex
+            // 
+            tbSavedWindowIndex.AutoSize = true;
+            tbSavedWindowIndex.Location = new Point(120, 30);
+            tbSavedWindowIndex.Margin = new Padding(4, 0, 4, 0);
+            tbSavedWindowIndex.Name = "tbSavedWindowIndex";
+            tbSavedWindowIndex.Size = new Size(13, 15);
+            tbSavedWindowIndex.TabIndex = 48;
+            tbSavedWindowIndex.Text = "0";
             // 
             // tbWindowClass
             // 
@@ -486,7 +609,7 @@
             // cbIgnoreChildWindows
             // 
             cbIgnoreChildWindows.AutoSize = true;
-            cbIgnoreChildWindows.Location = new Point(165, 291);
+            cbIgnoreChildWindows.Location = new Point(168, 433);
             cbIgnoreChildWindows.Margin = new Padding(4, 3, 4, 3);
             cbIgnoreChildWindows.Name = "cbIgnoreChildWindows";
             cbIgnoreChildWindows.Size = new Size(143, 19);
@@ -494,42 +617,9 @@
             cbIgnoreChildWindows.Text = "Ignore Child Windows";
             cbIgnoreChildWindows.UseVisualStyleBackColor = true;
             // 
-            // radioStartsWith
-            // 
-            radioStartsWith.AutoSize = true;
-            radioStartsWith.Location = new Point(344, 110);
-            radioStartsWith.Margin = new Padding(4, 3, 4, 3);
-            radioStartsWith.Name = "radioStartsWith";
-            radioStartsWith.Size = new Size(80, 19);
-            radioStartsWith.TabIndex = 43;
-            radioStartsWith.Text = "Starts with";
-            radioStartsWith.UseVisualStyleBackColor = true;
-            // 
-            // radioContains
-            // 
-            radioContains.AutoSize = true;
-            radioContains.Location = new Point(260, 110);
-            radioContains.Margin = new Padding(4, 3, 4, 3);
-            radioContains.Name = "radioContains";
-            radioContains.Size = new Size(72, 19);
-            radioContains.TabIndex = 42;
-            radioContains.Text = "Contains";
-            radioContains.UseVisualStyleBackColor = true;
-            // 
-            // radioFull
-            // 
-            radioFull.AutoSize = true;
-            radioFull.Location = new Point(206, 110);
-            radioFull.Margin = new Padding(4, 3, 4, 3);
-            radioFull.Name = "radioFull";
-            radioFull.Size = new Size(44, 19);
-            radioFull.TabIndex = 41;
-            radioFull.Text = "Full";
-            radioFull.UseVisualStyleBackColor = true;
-            // 
             // butResetMoved
             // 
-            butResetMoved.Location = new Point(460, 379);
+            butResetMoved.Location = new Point(811, 488);
             butResetMoved.Margin = new Padding(4, 3, 4, 3);
             butResetMoved.Name = "butResetMoved";
             butResetMoved.Size = new Size(136, 27);
@@ -545,13 +635,14 @@
             listView1.Margin = new Padding(4, 3, 4, 3);
             listView1.MultiSelect = false;
             listView1.Name = "listView1";
-            listView1.Size = new Size(432, 498);
+            listView1.Size = new Size(432, 593);
             listView1.Sorting = SortOrder.Ascending;
             listView1.TabIndex = 44;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
             listView1.SelectedIndexChanged += listView1_SelectedIndexChanged;
             listView1.KeyDown += listView1_KeyDown;
+            listView1.MouseClick += listView1_MouseClick;
             // 
             // columnHeader1
             // 
@@ -573,7 +664,7 @@
             // cbShowAllWindows
             // 
             cbShowAllWindows.AutoSize = true;
-            cbShowAllWindows.Location = new Point(14, 519);
+            cbShowAllWindows.Location = new Point(13, 613);
             cbShowAllWindows.Margin = new Padding(4, 3, 4, 3);
             cbShowAllWindows.Name = "cbShowAllWindows";
             cbShowAllWindows.Size = new Size(153, 19);
@@ -585,7 +676,7 @@
             // cbRunAtLogin
             // 
             cbRunAtLogin.AutoSize = true;
-            cbRunAtLogin.Location = new Point(472, 487);
+            cbRunAtLogin.Location = new Point(469, 580);
             cbRunAtLogin.Margin = new Padding(4, 3, 4, 3);
             cbRunAtLogin.Name = "cbRunAtLogin";
             cbRunAtLogin.Size = new Size(90, 19);
@@ -594,13 +685,18 @@
             cbRunAtLogin.UseVisualStyleBackColor = true;
             cbRunAtLogin.CheckedChanged += cbRunAtLogin_CheckedChanged;
             // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(61, 4);
+            // 
             // frmMain
             // 
             AcceptButton = butOK;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
-            ClientSize = new Size(962, 550);
+            ClientSize = new Size(962, 642);
             Controls.Add(cbRunAtLogin);
             Controls.Add(cbShowAllWindows);
             Controls.Add(listView1);
@@ -626,6 +722,10 @@
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
+            groupBox4.ResumeLayout(false);
+            groupBox4.PerformLayout();
+            groupBox3.ResumeLayout(false);
+            groupBox3.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -633,8 +733,6 @@
         #endregion
 
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.TextBox tbTitle;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox tbExe;
         private System.Windows.Forms.Button butOK;
@@ -655,7 +753,6 @@
         private System.Windows.Forms.Button butCancel;
         private System.Windows.Forms.Button butEditScreens;
         private System.Windows.Forms.CheckBox cbSearchExe;
-        private System.Windows.Forms.CheckBox cbSearchTitle;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ComboBox cbHotKeyLeft;
         private System.Windows.Forms.TextBox tbHotKeyCharacter;
@@ -672,15 +769,26 @@
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader4;
-        private System.Windows.Forms.RadioButton radioStartsWith;
-        private System.Windows.Forms.RadioButton radioContains;
-        private System.Windows.Forms.RadioButton radioFull;
         private System.Windows.Forms.CheckBox cbShowAllWindows;
         private CheckBox cbIgnoreChildWindows;
         private CheckBox cbRunAtLogin;
         private TextBox tbWindowClass;
         private Label label8;
         private CheckBox cbWindowClass;
+        private Label tbSavedWindowIndex;
+        private GroupBox groupBox4;
+        private RadioButton radioStartsWithInclude;
+        private RadioButton radioContainsInclude;
+        private RadioButton radioFullInclude;
+        private TextBox tbTitleInclude;
+        private CheckBox cbSearchTitleInclude;
+        private GroupBox groupBox3;
+        private RadioButton radioStartsWithExclude;
+        private RadioButton radioContainsExclude;
+        private RadioButton radioFullExclude;
+        private TextBox tbTitleExclude;
+        private CheckBox cbSearchTitleExclude;
+        private ContextMenuStrip contextMenuStrip1;
     }
 }
 

@@ -1,0 +1,10 @@
+
+
+IsChild_SamePid		Y	N	Y	N	Y	N	Y	N
+IsChild_HasParent		Y	Y	N	N	Y	Y	N	N
+IgnoreChildWindow		Y	Y	Y	Y	N	N	N	N
+
+				N	N	N	Y	Y	Y	Y	Y
+
+
+if (! IgnoreChildWindow || (! IsChild_SamePid && ! IsChild_HasParent))
