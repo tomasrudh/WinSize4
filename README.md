@@ -52,7 +52,7 @@ Also note that File Explorer actually is a child process of Explorer.exe, so thi
 
 ## Reset moved if new screen is detected
 
-If WinSize4 should detect that a screen has been removed, or a new one has been connceted, will all windows be eligable for move, if this selection is checked.
+If WinSize4 should detect that a screen has been removed, or a new one has been connected, will all windows be eligable for move, if this selection is checked.
 
 ## Reset Moved
 
