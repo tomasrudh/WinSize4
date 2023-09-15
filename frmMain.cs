@@ -38,6 +38,7 @@ namespace WinSize4
             _screens.Save();
             //_savedWindows.Order();
             PopulateListBox();
+            txtVersion.Text = GetType().Assembly.GetName().Version.ToString();
             ClsDebug.ClearLog();
             ClsDebug.LogNow("\nScreens:");
             for (int i = 0; i < _screens.ScreenList.Count; i++)

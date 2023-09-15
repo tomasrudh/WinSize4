@@ -87,6 +87,8 @@
             cbShowAllWindows = new CheckBox();
             cbRunAtLogin = new CheckBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            textBox1 = new TextBox();
+            txtVersion = new TextBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox4.SuspendLayout();
@@ -690,6 +692,24 @@
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(0, 0);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(100, 23);
+            textBox1.TabIndex = 1;
+            // 
+            // txtVersion
+            // 
+            txtVersion.BorderStyle = BorderStyle.None;
+            txtVersion.ForeColor = Color.Black;
+            txtVersion.Location = new Point(346, 613);
+            txtVersion.Name = "txtVersion";
+            txtVersion.ReadOnly = true;
+            txtVersion.Size = new Size(100, 16);
+            txtVersion.TabIndex = 47;
+            txtVersion.TextAlign = HorizontalAlignment.Right;
+            // 
             // frmMain
             // 
             AcceptButton = butOK;
@@ -697,6 +717,8 @@
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
             ClientSize = new Size(962, 642);
+            Controls.Add(txtVersion);
+            Controls.Add(textBox1);
             Controls.Add(cbRunAtLogin);
             Controls.Add(cbShowAllWindows);
             Controls.Add(listView1);
@@ -733,43 +755,43 @@
         #endregion
 
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox tbExe;
-        private System.Windows.Forms.Button butOK;
-        private System.Windows.Forms.Button butApply;
-        private System.Windows.Forms.Button butExit;
-        private System.Windows.Forms.Button butRemove;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox tbLeft;
-        private System.Windows.Forms.TextBox tbTop;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TextBox tbWidth;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox tbHeight;
-        private System.Windows.Forms.CheckBox cbCustomWidth;
-        private System.Windows.Forms.CheckBox cbCustomHeight;
-        private System.Windows.Forms.CheckBox cbFullScreen;
-        private System.Windows.Forms.Button butCancel;
-        private System.Windows.Forms.Button butEditScreens;
-        private System.Windows.Forms.CheckBox cbSearchExe;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.ComboBox cbHotKeyLeft;
-        private System.Windows.Forms.TextBox tbHotKeyCharacter;
-        private System.Windows.Forms.ComboBox cbHotKeyRight;
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.TextBox tbName;
-        private System.Windows.Forms.CheckBox cbResetIfNewScreen;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.Button butResetMoved;
-        private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.ListView listView1;
-        private System.Windows.Forms.ColumnHeader columnHeader1;
-        private System.Windows.Forms.ColumnHeader columnHeader2;
-        private System.Windows.Forms.ColumnHeader columnHeader3;
-        private System.Windows.Forms.ColumnHeader columnHeader4;
-        private System.Windows.Forms.CheckBox cbShowAllWindows;
+        private Label label2;
+        private TextBox tbExe;
+        private Button butOK;
+        private Button butApply;
+        private Button butExit;
+        private Button butRemove;
+        private Label label3;
+        private Label label4;
+        private TextBox tbLeft;
+        private TextBox tbTop;
+        private Label label5;
+        private TextBox tbWidth;
+        private Label label6;
+        private TextBox tbHeight;
+        private CheckBox cbCustomWidth;
+        private CheckBox cbCustomHeight;
+        private CheckBox cbFullScreen;
+        private Button butCancel;
+        private Button butEditScreens;
+        private CheckBox cbSearchExe;
+        private GroupBox groupBox1;
+        private ComboBox cbHotKeyLeft;
+        private TextBox tbHotKeyCharacter;
+        private ComboBox cbHotKeyRight;
+        private NotifyIcon notifyIcon1;
+        private Label label7;
+        private TextBox tbName;
+        private CheckBox cbResetIfNewScreen;
+        private GroupBox groupBox2;
+        private Button butResetMoved;
+        private ToolTip toolTip1;
+        private ListView listView1;
+        private ColumnHeader columnHeader1;
+        private ColumnHeader columnHeader2;
+        private ColumnHeader columnHeader3;
+        private ColumnHeader columnHeader4;
+        private CheckBox cbShowAllWindows;
         private CheckBox cbIgnoreChildWindows;
         private CheckBox cbRunAtLogin;
         private TextBox tbWindowClass;
@@ -789,6 +811,8 @@
         private TextBox tbTitleExclude;
         private CheckBox cbSearchTitleExclude;
         private ContextMenuStrip contextMenuStrip1;
+        private TextBox textBox1;
+        private TextBox txtVersion;
     }
 }
 
