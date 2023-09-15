@@ -8,7 +8,8 @@ Later a WinSize3 has emerged, but that is also lacking some functionality, in my
 https://github.com/Hamster128/WinSize3 <br>
 # My take
 WinSize4 runs in the background consuming very little resources. Every time a window gets focus it checks its database if a window with the same criteria exists, and if so places and resizes it. The criteria is which executable that runs it and / or the title of the window, and which screen the window is on.
-![image](https://github.com/tomasrudh/WinSize4/assets/24943208/e36a7f50-a5cb-4e4e-b21b-f24fc321a984)
+
+![main](https://github.com/tomasrudh/WinSize4/assets/24943208/a72776ac-2f37-404b-aca0-4299d3f584b0)
 
 The list shows which windows WinSize4 is monitoring, name of the entry, size of the screen it should be on, and if that screen is primary or not. Lines in grey are for a screen that is not currently present. There is a check mark in the bottom that select if only the windows belonging to present screens should be shown, or all.
 ## Name
@@ -68,7 +69,8 @@ When a window gets focus does WinSize4 check if that window has a line in the co
 Once a window has been moved and / or resized, will it be marked so that it will not be moved again. That is, after a window has been moved can you resize it and it stays. If you close the application and restart it, it will again be placed and resized.
 
 # Screens
-![image](https://github.com/tomasrudh/WinSize4/assets/24943208/971aba68-f74c-4f27-8874-bc5854c2ae58)
+![screens](https://github.com/tomasrudh/WinSize4/assets/24943208/c6a41d69-c880-425b-9f55-9a07c9faebe5)
+
 
 'Edit screens' on the main window takes you to a window where you can set some properties for the screens.
 
