@@ -32,6 +32,17 @@ public class ClsSavedWindows
     }
 
     //**********************************************
+    /// <summary> Duplicates a window </summary>
+    /// <param name="Props"></param>
+    /// <returns>Tag</returns>
+    //**********************************************
+    public void DuplicateWindow(int Index)
+    {
+        this.Props.Add(this.Props[Index]);
+        this.Props[this.Props.Count - 1].Tag = _nextTag++;
+    }
+
+    //**********************************************
     /// <summary>Updates properties for the supplied window properties</summary>
     /// <param name="ClsSavedWindowProps"></param>
     /// <returns>True if a window is updated, false if window is not found</returns>

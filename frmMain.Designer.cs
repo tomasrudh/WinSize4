@@ -60,6 +60,7 @@
             tbName = new TextBox();
             cbResetIfNewScreen = new CheckBox();
             groupBox2 = new GroupBox();
+            butDuplicate = new Button();
             groupBox4 = new GroupBox();
             radioStartsWithInclude = new RadioButton();
             radioContainsInclude = new RadioButton();
@@ -87,7 +88,6 @@
             cbShowAllWindows = new CheckBox();
             cbRunAtLogin = new CheckBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            textBox1 = new TextBox();
             txtVersion = new TextBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -242,7 +242,7 @@
             // cbCustomWidth
             // 
             cbCustomWidth.AutoSize = true;
-            cbCustomWidth.Location = new Point(349, 371);
+            cbCustomWidth.Location = new Point(330, 370);
             cbCustomWidth.Margin = new Padding(4, 3, 4, 3);
             cbCustomWidth.Name = "cbCustomWidth";
             cbCustomWidth.Size = new Size(68, 19);
@@ -255,7 +255,7 @@
             // cbCustomHeight
             // 
             cbCustomHeight.AutoSize = true;
-            cbCustomHeight.Location = new Point(349, 402);
+            cbCustomHeight.Location = new Point(330, 400);
             cbCustomHeight.Margin = new Padding(4, 3, 4, 3);
             cbCustomHeight.Name = "cbCustomHeight";
             cbCustomHeight.Size = new Size(68, 19);
@@ -268,7 +268,7 @@
             // cbFullScreen
             // 
             cbFullScreen.AutoSize = true;
-            cbFullScreen.Location = new Point(349, 433);
+            cbFullScreen.Location = new Point(330, 340);
             cbFullScreen.Margin = new Padding(4, 3, 4, 3);
             cbFullScreen.Name = "cbFullScreen";
             cbFullScreen.Size = new Size(82, 19);
@@ -401,6 +401,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(butDuplicate);
             groupBox2.Controls.Add(groupBox4);
             groupBox2.Controls.Add(groupBox3);
             groupBox2.Controls.Add(tbSavedWindowIndex);
@@ -434,6 +435,17 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Selected window";
             groupBox2.Enter += groupBox2_Enter;
+            // 
+            // butDuplicate
+            // 
+            butDuplicate.Location = new Point(164, 428);
+            butDuplicate.Margin = new Padding(4, 3, 4, 3);
+            butDuplicate.Name = "butDuplicate";
+            butDuplicate.Size = new Size(136, 27);
+            butDuplicate.TabIndex = 57;
+            butDuplicate.Text = "Duplicate";
+            butDuplicate.UseVisualStyleBackColor = true;
+            butDuplicate.Click += butDuplicate_Click;
             // 
             // groupBox4
             // 
@@ -611,7 +623,7 @@
             // cbIgnoreChildWindows
             // 
             cbIgnoreChildWindows.AutoSize = true;
-            cbIgnoreChildWindows.Location = new Point(168, 433);
+            cbIgnoreChildWindows.Location = new Point(330, 433);
             cbIgnoreChildWindows.Margin = new Padding(4, 3, 4, 3);
             cbIgnoreChildWindows.Name = "cbIgnoreChildWindows";
             cbIgnoreChildWindows.Size = new Size(143, 19);
@@ -692,13 +704,6 @@
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // textBox1
-            // 
-            textBox1.Location = new Point(0, 0);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(100, 23);
-            textBox1.TabIndex = 1;
-            // 
             // txtVersion
             // 
             txtVersion.BorderStyle = BorderStyle.None;
@@ -718,7 +723,6 @@
             CancelButton = butCancel;
             ClientSize = new Size(962, 642);
             Controls.Add(txtVersion);
-            Controls.Add(textBox1);
             Controls.Add(cbRunAtLogin);
             Controls.Add(cbShowAllWindows);
             Controls.Add(listView1);
@@ -811,8 +815,8 @@
         private TextBox tbTitleExclude;
         private CheckBox cbSearchTitleExclude;
         private ContextMenuStrip contextMenuStrip1;
-        private TextBox textBox1;
         private TextBox txtVersion;
+        private Button butDuplicate;
     }
 }
 

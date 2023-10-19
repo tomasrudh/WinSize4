@@ -286,6 +286,8 @@ namespace WinSize4
                         int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
                         int screenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[Index]);
 
+                        groupBox2.Enabled = true;
+
                         ClsWindowProps Win = _savedWindows.Props[Index];
                         if (Win.TitleInclude != null)
                         {
@@ -365,6 +367,20 @@ namespace WinSize4
                                 radioStartsWithExclude.Checked = true;
                                 break;
                         }
+                    }
+                    else
+                    // No item selected
+                    {
+                        tbName.Text = "";
+                        cbWindowClass.Checked = false;
+                        tbWindowClass.Text = "";
+                        tbTitleInclude.Text = "";
+                        cbSearchTitleInclude.Checked = false;
+                        tbTitleExclude.Text = "";
+                        cbSearchTitleExclude.Checked = false;
+                        tbExe.Text = "";
+                        cbSearchExe.Checked = false;
+                        groupBox2.Enabled = false;
                     }
                 }
             }
@@ -760,6 +776,16 @@ namespace WinSize4
                     }
                     _dirty = true;
                 }
+            }
+        }
+
+        private void butDuplicate_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count > 0)
+            {
+                int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
+                _savedWindows.DuplicateWindow(Index);
+                PopulateListBox();
             }
         }
 
