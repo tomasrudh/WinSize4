@@ -38,7 +38,9 @@ namespace WinSize4
             _screens.Save();
             //_savedWindows.Order();
             PopulateListBox();
-            txtVersion.Text = GetType().Assembly.GetName().Version.ToString();
+            //txtVersion.Text = GetType().Assembly.GetName().Version.ToString();
+            // Set version: Project -> WinSize4 Properties: Package - General - Assembly version / File version
+            txtVersion.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
             ClsDebug.ClearLog();
             ClsDebug.LogNow("\nScreens:");
             for (int i = 0; i < _screens.ScreenList.Count; i++)
