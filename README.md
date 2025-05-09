@@ -9,7 +9,7 @@ https://github.com/Hamster128/WinSize3 <br>
 # My take
 WinSize4 runs in the background consuming very little resources. Every time a window gets focus it checks its database if a window with the same criteria exists, and if so places and resizes it. The criteria is which executable that runs it and / or the title of the window, and which screen the window is on.
 
-![main](https://github.com/tomasrudh/WinSize4/assets/24943208/a72776ac-2f37-404b-aca0-4299d3f584b0)
+![image](https://github.com/user-attachments/assets/e4fad087-cdd3-498b-b11d-5c52b97539c3)
 
 The list shows which windows WinSize4 is monitoring, name of the entry, size of the screen it should be on, and if that screen is primary or not. Lines in grey are for a screen that is not currently present. There is a check mark in the bottom that select if only the windows belonging to present screens should be shown, or all.
 ## Name
@@ -50,6 +50,9 @@ Note that some programs show a window with for example log in information before
 Also note that File Explorer actually is a child process of Explorer.exe, so this check should probably be un-checked. This also goes for Edge, two windows running Edge share the same instance of the process 'msedge', so each window will be considered a child to the others.
 
 'Ignore Child Windows' is checked by default, except for the executables 'explorer' and 'msedge'.
+
+## Always move
+The window will be moved whenever it gets focus, even if it has already been moved. This also goes for a browser where the tab is set as title of the window, when the tab gets focus.
 
 ## Reset moved if new screen is detected
 
