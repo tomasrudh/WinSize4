@@ -60,6 +60,7 @@
             tbName = new TextBox();
             cbResetIfNewScreen = new CheckBox();
             groupBox2 = new GroupBox();
+            cbIgnoreChildWindows = new CheckBox();
             butDuplicate = new Button();
             groupBox4 = new GroupBox();
             radioStartsWithInclude = new RadioButton();
@@ -77,7 +78,7 @@
             tbWindowClass = new TextBox();
             label8 = new Label();
             cbWindowClass = new CheckBox();
-            cbIgnoreChildWindows = new CheckBox();
+            cbAlwaysMove = new CheckBox();
             butResetMoved = new Button();
             toolTip1 = new ToolTip(components);
             listView1 = new ListView();
@@ -107,7 +108,7 @@
             label2.Location = new Point(14, 287);
             label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(64, 15);
+            label2.Size = new Size(63, 15);
             label2.TabIndex = 4;
             label2.Text = "Executable";
             // 
@@ -121,7 +122,7 @@
             // 
             // butOK
             // 
-            butOK.Location = new Point(540, 605);
+            butOK.Location = new Point(540, 633);
             butOK.Margin = new Padding(4, 3, 4, 3);
             butOK.Name = "butOK";
             butOK.Size = new Size(124, 27);
@@ -132,7 +133,7 @@
             // 
             // butApply
             // 
-            butApply.Location = new Point(765, 605);
+            butApply.Location = new Point(765, 633);
             butApply.Margin = new Padding(4, 3, 4, 3);
             butApply.Name = "butApply";
             butApply.Size = new Size(88, 27);
@@ -143,7 +144,7 @@
             // 
             // butExit
             // 
-            butExit.Location = new Point(859, 605);
+            butExit.Location = new Point(859, 633);
             butExit.Margin = new Padding(4, 3, 4, 3);
             butExit.Name = "butExit";
             butExit.Size = new Size(88, 27);
@@ -188,7 +189,7 @@
             label4.Location = new Point(14, 342);
             label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(26, 15);
+            label4.Size = new Size(27, 15);
             label4.TabIndex = 12;
             label4.Text = "Top";
             // 
@@ -268,7 +269,7 @@
             // cbFullScreen
             // 
             cbFullScreen.AutoSize = true;
-            cbFullScreen.Location = new Point(330, 340);
+            cbFullScreen.Location = new Point(17, 461);
             cbFullScreen.Margin = new Padding(4, 3, 4, 3);
             cbFullScreen.Name = "cbFullScreen";
             cbFullScreen.Size = new Size(82, 19);
@@ -281,7 +282,7 @@
             // butCancel
             // 
             butCancel.DialogResult = DialogResult.Cancel;
-            butCancel.Location = new Point(670, 605);
+            butCancel.Location = new Point(670, 633);
             butCancel.Margin = new Padding(4, 3, 4, 3);
             butCancel.Name = "butCancel";
             butCancel.Size = new Size(88, 27);
@@ -292,7 +293,7 @@
             // 
             // butEditScreens
             // 
-            butEditScreens.Location = new Point(811, 535);
+            butEditScreens.Location = new Point(811, 563);
             butEditScreens.Margin = new Padding(4, 3, 4, 3);
             butEditScreens.Name = "butEditScreens";
             butEditScreens.Size = new Size(136, 27);
@@ -317,7 +318,7 @@
             groupBox1.Controls.Add(tbHotKeyCharacter);
             groupBox1.Controls.Add(cbHotKeyRight);
             groupBox1.Controls.Add(cbHotKeyLeft);
-            groupBox1.Location = new Point(463, 513);
+            groupBox1.Location = new Point(463, 541);
             groupBox1.Margin = new Padding(4, 3, 4, 3);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(4, 3, 4, 3);
@@ -389,7 +390,7 @@
             // cbResetIfNewScreen
             // 
             cbResetIfNewScreen.AutoSize = true;
-            cbResetIfNewScreen.Location = new Point(480, 488);
+            cbResetIfNewScreen.Location = new Point(480, 516);
             cbResetIfNewScreen.Margin = new Padding(4, 3, 4, 3);
             cbResetIfNewScreen.Name = "cbResetIfNewScreen";
             cbResetIfNewScreen.Size = new Size(226, 19);
@@ -401,6 +402,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(cbIgnoreChildWindows);
             groupBox2.Controls.Add(butDuplicate);
             groupBox2.Controls.Add(groupBox4);
             groupBox2.Controls.Add(groupBox3);
@@ -408,7 +410,7 @@
             groupBox2.Controls.Add(tbWindowClass);
             groupBox2.Controls.Add(label8);
             groupBox2.Controls.Add(cbWindowClass);
-            groupBox2.Controls.Add(cbIgnoreChildWindows);
+            groupBox2.Controls.Add(cbAlwaysMove);
             groupBox2.Controls.Add(tbName);
             groupBox2.Controls.Add(label7);
             groupBox2.Controls.Add(tbExe);
@@ -430,11 +432,21 @@
             groupBox2.Margin = new Padding(4, 3, 4, 3);
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(4, 3, 4, 3);
-            groupBox2.Size = new Size(484, 468);
+            groupBox2.Size = new Size(484, 492);
             groupBox2.TabIndex = 42;
             groupBox2.TabStop = false;
             groupBox2.Text = "Selected window";
             groupBox2.Enter += groupBox2_Enter;
+            // 
+            // cbIgnoreChildWindows
+            // 
+            cbIgnoreChildWindows.AutoSize = true;
+            cbIgnoreChildWindows.Location = new Point(152, 461);
+            cbIgnoreChildWindows.Name = "cbIgnoreChildWindows";
+            cbIgnoreChildWindows.Size = new Size(143, 19);
+            cbIgnoreChildWindows.TabIndex = 58;
+            cbIgnoreChildWindows.Text = "Ignore Child Windows";
+            cbIgnoreChildWindows.UseVisualStyleBackColor = true;
             // 
             // butDuplicate
             // 
@@ -620,20 +632,20 @@
             cbWindowClass.TabIndex = 47;
             cbWindowClass.UseVisualStyleBackColor = true;
             // 
-            // cbIgnoreChildWindows
+            // cbAlwaysMove
             // 
-            cbIgnoreChildWindows.AutoSize = true;
-            cbIgnoreChildWindows.Location = new Point(330, 433);
-            cbIgnoreChildWindows.Margin = new Padding(4, 3, 4, 3);
-            cbIgnoreChildWindows.Name = "cbIgnoreChildWindows";
-            cbIgnoreChildWindows.Size = new Size(143, 19);
-            cbIgnoreChildWindows.TabIndex = 44;
-            cbIgnoreChildWindows.Text = "Ignore Child Windows";
-            cbIgnoreChildWindows.UseVisualStyleBackColor = true;
+            cbAlwaysMove.AutoSize = true;
+            cbAlwaysMove.Location = new Point(330, 461);
+            cbAlwaysMove.Margin = new Padding(4, 3, 4, 3);
+            cbAlwaysMove.Name = "cbAlwaysMove";
+            cbAlwaysMove.Size = new Size(96, 19);
+            cbAlwaysMove.TabIndex = 44;
+            cbAlwaysMove.Text = "Always move";
+            cbAlwaysMove.UseVisualStyleBackColor = true;
             // 
             // butResetMoved
             // 
-            butResetMoved.Location = new Point(811, 488);
+            butResetMoved.Location = new Point(811, 516);
             butResetMoved.Margin = new Padding(4, 3, 4, 3);
             butResetMoved.Name = "butResetMoved";
             butResetMoved.Size = new Size(136, 27);
@@ -649,7 +661,7 @@
             listView1.Margin = new Padding(4, 3, 4, 3);
             listView1.MultiSelect = false;
             listView1.Name = "listView1";
-            listView1.Size = new Size(432, 593);
+            listView1.Size = new Size(432, 613);
             listView1.Sorting = SortOrder.Ascending;
             listView1.TabIndex = 44;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -678,7 +690,7 @@
             // cbShowAllWindows
             // 
             cbShowAllWindows.AutoSize = true;
-            cbShowAllWindows.Location = new Point(13, 613);
+            cbShowAllWindows.Location = new Point(14, 641);
             cbShowAllWindows.Margin = new Padding(4, 3, 4, 3);
             cbShowAllWindows.Name = "cbShowAllWindows";
             cbShowAllWindows.Size = new Size(153, 19);
@@ -690,7 +702,7 @@
             // cbRunAtLogin
             // 
             cbRunAtLogin.AutoSize = true;
-            cbRunAtLogin.Location = new Point(469, 580);
+            cbRunAtLogin.Location = new Point(469, 608);
             cbRunAtLogin.Margin = new Padding(4, 3, 4, 3);
             cbRunAtLogin.Name = "cbRunAtLogin";
             cbRunAtLogin.Size = new Size(90, 19);
@@ -708,7 +720,7 @@
             // 
             txtVersion.BorderStyle = BorderStyle.None;
             txtVersion.ForeColor = Color.Black;
-            txtVersion.Location = new Point(346, 613);
+            txtVersion.Location = new Point(346, 633);
             txtVersion.Name = "txtVersion";
             txtVersion.ReadOnly = true;
             txtVersion.Size = new Size(100, 16);
@@ -721,7 +733,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
-            ClientSize = new Size(962, 642);
+            ClientSize = new Size(962, 674);
             Controls.Add(txtVersion);
             Controls.Add(cbRunAtLogin);
             Controls.Add(cbShowAllWindows);
@@ -797,6 +809,7 @@
         private ColumnHeader columnHeader4;
         private CheckBox cbShowAllWindows;
         private CheckBox cbIgnoreChildWindows;
+        private CheckBox cbAlwaysMove;
         private CheckBox cbRunAtLogin;
         private TextBox tbWindowClass;
         private Label label8;

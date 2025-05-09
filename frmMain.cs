@@ -2,10 +2,6 @@
 using System.Runtime.InteropServices;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.Win32;
-using System.Text.Json;
-using Windows.Media.Devices;
-using System.Windows.Forms;
-using System.Text;
 
 namespace WinSize4
 {
@@ -22,6 +18,7 @@ namespace WinSize4
         bool _closeWindow = false;
         bool _toastClicked = false;
         bool _dirty = false;
+        string _lastTitle = "";
         private bool allowVisible;     // ContextMenu's Show command used
 
         //**********************************************
@@ -179,10 +176,12 @@ namespace WinSize4
                     int currentWindowsIndex = _currentWindows.GetCurrentWindowsIndexForhWnd(hWnd);
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
-                        _currentWindows.Windows[currentWindowsIndex].Moved == false)
+                        currentWindowProps.Title != _lastTitle &&
+                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true))
                     {
                         int targetScreenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[targetSavedWindowsIndex]);
-                        bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
+                        //bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
+                        bool targetWindowHasParent = ((int)GetWindow((IntPtr)hWnd, 4) > 0);
                         // Only continue if window is not a child window to a current window, or child windows should be considered
                         if (!_savedWindows.Props[targetSavedWindowsIndex].IgnoreChildWindows || !targetWindowHasParent)
                         {
@@ -206,6 +205,7 @@ namespace WinSize4
                             ClsDebug.LogText();
                         }
                     }
+                    _lastTitle = currentWindowProps.Title;
                 }
             }
             catch
@@ -240,6 +240,10 @@ namespace WinSize4
                     row = new string[] { _savedWindows.Props[i].Name, _savedWindows.Props[i].MonitorBoundsWidth.ToString(), _savedWindows.Props[i].MonitorBoundsHeight.ToString(), Primary };
                     var listViewItem = new ListViewItem(row);
                     listViewItem.Tag = _savedWindows.Props[i].Tag;
+                    if (_screens.GetScreenIndexForWindow(_savedWindows.Props[i]) == -1)
+                    {
+                        listView1.Items.Add(listViewItem);
+                    }
                     if (!_screens.ScreenList[_screens.GetScreenIndexForWindow(_savedWindows.Props[i])].Present)
                     {
                         if (_settings.showAllWindows)
@@ -318,6 +322,8 @@ namespace WinSize4
                         cbSearchTitleExclude.Checked = Win.SearchTitleExclude;
                         tbExe.Text = Win.Exe;
                         cbSearchExe.Checked = Win.SearchExe;
+                        cbIgnoreChildWindows.Checked = Win.IgnoreChildWindows;
+                        cbAlwaysMove.Checked = Win.AlwaysMove;
 
                         cbCustomWidth.Checked = Win.MaxWidth;
                         if (cbCustomWidth.Checked)
@@ -344,7 +350,6 @@ namespace WinSize4
                         }
 
                         cbFullScreen.Checked = Win.FullScreen;
-                        cbIgnoreChildWindows.Checked = Win.IgnoreChildWindows;
                         switch (Win.SearchTypeInclude)
                         {
                             case ClsWindowProps.Full:
@@ -425,6 +430,8 @@ namespace WinSize4
                 _savedWindows.Props[index].SearchTitleExclude = cbSearchTitleExclude.Checked;
                 _savedWindows.Props[index].Exe = tbExe.Text;
                 _savedWindows.Props[index].SearchExe = cbSearchExe.Checked;
+                _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
+                _savedWindows.Props[index].AlwaysMove = cbAlwaysMove.Checked;
                 if (!cbCustomWidth.Checked)
                 {
                     _savedWindows.Props[index].Width = int.Parse(tbWidth.Text);
@@ -439,6 +446,7 @@ namespace WinSize4
                 _savedWindows.Props[index].MaxHeight = cbCustomHeight.Checked;
                 _savedWindows.Props[index].FullScreen = cbFullScreen.Checked;
                 _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
+                _savedWindows.Props[index].AlwaysMove = cbAlwaysMove.Checked;
                 if (radioFullInclude.Checked)
                     _savedWindows.Props[index].SearchTypeInclude = ClsWindowProps.Full;
                 if (radioContainsInclude.Checked)
@@ -530,7 +538,7 @@ namespace WinSize4
             var result = Scr.ShowDialog();
             if (result == DialogResult.OK)
             {
-                _screens.ScreenList = Scr._returnScreenList;
+                _screens.ScreenList = Scr.ReturnScreenList;
                 _screens.Save();
             }
         }
@@ -929,6 +937,12 @@ namespace WinSize4
 
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
         static extern IntPtr GetParent(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
         private void groupBox2_Enter(object sender, EventArgs e)
         {

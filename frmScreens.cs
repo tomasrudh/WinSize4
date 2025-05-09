@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.ComponentModel;
 
 namespace WinSize4
 {
     public partial class frmScreens : Form
     {
         public List<ClsScreenList> _screenList = new List<ClsScreenList>();
-        public List<ClsScreenList> _returnScreenList { get; set; }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public List<ClsScreenList> ReturnScreenList { get; set; }
         int _boundsWidth;
         int _boundsHeight;
         bool _primary;
@@ -64,7 +66,7 @@ namespace WinSize4
 
         private void butOK_Click(object sender, EventArgs e)
         {
-            this._returnScreenList = this._screenList;
+            this.ReturnScreenList = this._screenList;
             this.DialogResult = DialogResult.OK;
             this.Close();
         }

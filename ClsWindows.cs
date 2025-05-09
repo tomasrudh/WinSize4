@@ -60,8 +60,10 @@
         { set; get; } = true;
         public bool Present
         { set; get; }
+        public bool AlwaysMove
+        { set; get; } = false;
 
-            public const int Full = 0;
+        public const int Full = 0;
         public const int Contains = 1;
         public const int StartsWith = 2;
     }
