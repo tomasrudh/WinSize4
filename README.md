@@ -21,6 +21,10 @@ The class of window the application is registered with, can be selected if this 
 
 The title of the window, might not be visible. Can be selected if this shuld be considered when the windows is evaluated for move. If considered, it is possible to select wether the full title should be considered, exact match, if the text should be somewhere in the title, or if the title should begin with the text.
 
+### Include and Exclude
+
+You can include and / or exclude a part of, or entire, title. You can add several texts divided with a pipe character (|). Exclude takes precedence over Include, if the same text is added to both Include and Exclude, will the matched window be excluded.
+
 ## Executable
 
 The name of the exe file that has opened the window. Can be selected if this shuld be considered when the windows is evaluated for move.
