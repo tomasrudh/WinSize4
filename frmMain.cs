@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.Win32;
+using Windows.UI.Notifications;
 
 namespace WinSize4
 {
@@ -18,6 +21,7 @@ namespace WinSize4
         bool _closeWindow = false;
         bool _toastClicked = false;
         bool _dirty = false;
+        bool isPausedUpdating;
         string _lastTitle = "";
         private bool allowVisible;     // ContextMenu's Show command used
 
@@ -54,6 +58,7 @@ namespace WinSize4
             notifyIcon1.Text = _savedWindows.Props.Count.ToString() + " controlled windows";
             notifyIcon1.ContextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
             notifyIcon1.ContextMenuStrip.Items.Add("Show", null, this.butShow_Click);
+            notifyIcon1.ContextMenuStrip.Items.Add("Pause", null, this.togglePause);
             notifyIcon1.ContextMenuStrip.Items.Add("Reset moved", null, this.butResetMoved_Click);
             notifyIcon1.ContextMenuStrip.Items.Add("Exit", null, this.butExit_Click);
             cbHotKeyLeft.SelectedIndex = cbHotKeyLeft.FindString(_settings.HotKeyLeft);
@@ -65,6 +70,7 @@ namespace WinSize4
             cbShowAllWindows.Checked = _settings.showAllWindows;
             cbResetIfNewScreen.Checked = _settings.resetIfNewScreen;
             cbRunAtLogin.Checked = _settings.runAtLogin;
+            cbIsPaused.Checked = _settings.isPaused;
             ClsDebug.AddText("\nStarting");
             ClsDebug.LogText();
             timer1.Interval = _settings.Interval;
@@ -118,11 +124,6 @@ namespace WinSize4
                     listView1.Items[Index].Selected = true;
                     listView1.Select();
 
-                    ToastNotificationManagerCompat.OnActivated += toastArgs =>
-                    {
-                        _toastClicked = true;
-                    };
-
                     ClsWindowProps Props = _currentWindows.GetWindowProperties(hWnd);
                     string newWindowText = newWindow == true ? "WinSize4: Adding as a new window" : "WinSize4: Updating an existing window";
                     new ToastContentBuilder()
@@ -133,6 +134,17 @@ namespace WinSize4
                         .SetBackgroundActivation()
                         .Show();
                     newWindowText += "\nTitle: " + _savedWindows.Props[savedWindowsIndex].TitleInclude;
+
+                    ToastNotificationManagerCompat.OnActivated += toastArgs =>
+                    {
+                        _toastClicked = true;
+                        allowVisible = true;
+                        this.Invoke((MethodInvoker)delegate {
+                            Show();
+                        });
+                        //ToastArguments args = ToastArguments.Parse(toastArgs.Argument);
+                    };
+
                     ClsDebug.LogToEvent(new Exception(), EventLogEntryType.Information, newWindowText);
                 }
                 base.WndProc(ref m);
@@ -161,7 +173,11 @@ namespace WinSize4
                 ClsDebug.AddText("Timer1_Tick starting");
                 timer1.Stop();
                 long hWnd = (long)GetForegroundWindow();
-                if (hWnd > 0)
+                if (_settings.isPaused)
+                {
+                    ClsDebug.AddText("WinSize4 is paused");
+                }
+                if (hWnd > 0 && _settings.isPaused == false)
                 {
                     bool NewScreen = _screens.AddNewScreens();
                     bool ChangedScreens = _screens.SetPresent();
@@ -174,6 +190,15 @@ namespace WinSize4
                     int currentScreenIndex = _screens.GetScreenIndexForWindow(currentWindowProps);
                     int targetSavedWindowsIndex = _savedWindows.GetIndexAllScreens(currentWindowProps, _screens.ScreenList, currentScreenIndex);
                     int currentWindowsIndex = _currentWindows.GetCurrentWindowsIndexForhWnd(hWnd);
+                    string Text = _currentWindows.Windows[currentWindowsIndex].hWnd + " " +
+                        _currentWindows.Windows[currentWindowsIndex].Pid + " " +
+                        _currentWindows.Windows[currentWindowsIndex].Props.Name + " " +
+                        _currentWindows.Windows[currentWindowsIndex].Props.Exe + " " +
+                        _currentWindows.Windows[currentWindowsIndex].Props.WindowClass;
+                    if (currentWindowProps.Title != _lastTitle)
+                    {
+                        ClsDebug.LogNow("Checking window: " + Text);
+                    }
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
                         currentWindowProps.Title != _lastTitle &&
@@ -185,11 +210,6 @@ namespace WinSize4
                         // Only continue if window is not a child window to a current window, or child windows should be considered
                         if (!_savedWindows.Props[targetSavedWindowsIndex].IgnoreChildWindows || !targetWindowHasParent)
                         {
-                            string Text = _currentWindows.Windows[currentWindowsIndex].hWnd + " " +
-                                _currentWindows.Windows[currentWindowsIndex].Pid + " " +
-                                _currentWindows.Windows[currentWindowsIndex].Props.Name + " " +
-                                _currentWindows.Windows[currentWindowsIndex].Props.Exe + " " +
-                                _currentWindows.Windows[currentWindowsIndex].Props.WindowClass;
                             ClsDebug.AddText("Moving window: " + Text);
 
                             _currentWindows.MoveCurrentWindow(currentWindowsIndex,
@@ -324,6 +344,7 @@ namespace WinSize4
                         cbSearchExe.Checked = Win.SearchExe;
                         cbIgnoreChildWindows.Checked = Win.IgnoreChildWindows;
                         cbAlwaysMove.Checked = Win.AlwaysMove;
+                        cbCanResize.Checked = Win.CanResize;
 
                         cbCustomWidth.Checked = Win.MaxWidth;
                         if (cbCustomWidth.Checked)
@@ -432,6 +453,7 @@ namespace WinSize4
                 _savedWindows.Props[index].SearchExe = cbSearchExe.Checked;
                 _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
                 _savedWindows.Props[index].AlwaysMove = cbAlwaysMove.Checked;
+                _savedWindows.Props[index].CanResize = cbCanResize.Checked;
                 if (!cbCustomWidth.Checked)
                 {
                     _savedWindows.Props[index].Width = int.Parse(tbWidth.Text);
@@ -447,6 +469,7 @@ namespace WinSize4
                 _savedWindows.Props[index].FullScreen = cbFullScreen.Checked;
                 _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
                 _savedWindows.Props[index].AlwaysMove = cbAlwaysMove.Checked;
+                _savedWindows.Props[index].CanResize = cbCanResize.Checked;
                 if (radioFullInclude.Checked)
                     _savedWindows.Props[index].SearchTypeInclude = ClsWindowProps.Full;
                 if (radioContainsInclude.Checked)
@@ -595,7 +618,52 @@ namespace WinSize4
             _currentWindows.ResetMoved();
         }
 
-        //private void 
+        //**********************************************
+        // Pause
+        //**********************************************
+        private void togglePause(object sender, EventArgs e)
+        {
+            if (isPausedUpdating == false)
+            {
+                isPausedUpdating = true;
+                if (((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked)
+                {
+                    _settings.isPaused = false;
+                    ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = false;
+                    cbIsPaused.Checked = false;
+                }
+                else
+                {
+                    _settings.isPaused = true;
+                    ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = true;
+                    cbIsPaused.Checked = true;
+                }
+                _dirty = true;
+                isPausedUpdating = false;
+            }
+        }
+
+        private void cbIsPaused_CheckedChanged(object sender, EventArgs e)
+        {
+            if (isPausedUpdating == false)
+            {
+                isPausedUpdating = true;
+                if (((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked)
+            {
+                _settings.isPaused = false;
+                ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = false;
+                cbIsPaused.Checked = false;
+            }
+            else
+            {
+                _settings.isPaused = true;
+                ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = true;
+                cbIsPaused.Checked = true;
+            }
+            _dirty = true;
+                isPausedUpdating = false;
+            }
+        }
 
         private void tbLeft_TextChanged(object sender, EventArgs e)
         {
@@ -864,6 +932,36 @@ namespace WinSize4
         private void cbResetIfNewScreen_CheckedChanged(object sender, EventArgs e)
         {
             _settings.resetIfNewScreen = cbResetIfNewScreen.Checked;
+        }
+
+        private void cbCanResize_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbCanResize.Checked)
+            {
+                tbWidth.Enabled = true;
+                tbHeight.Enabled = true;
+                cbCustomWidth.Enabled = true;
+                cbCustomHeight.Enabled = true;
+            }
+            else
+            {
+                tbWidth.Enabled = false;
+                tbHeight.Enabled = false;
+                cbCustomWidth.Enabled = false;
+                cbCustomHeight.Enabled = false;
+            }
+        }
+
+        private void cbWindowClass_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbWindowClass.Checked)
+            {
+                tbWindowClass.Enabled = true;
+            }
+            else
+            {
+                tbWindowClass.Enabled = false;
+            }
         }
 
         //**********************************************

@@ -62,7 +62,15 @@ namespace WinSize4
         {
             if (ex.StackTrace == null)
             {
-                EventLog.WriteEntry("WinSize4", text, Type, 1);
+                try
+                {
+                    EventLog.WriteEntry("WinSize4", text, Type, 1);
+                }
+                catch
+                (Exception ex2)
+                {
+                    EventLog.WriteEntry("Application", text, Type, 1);
+                }
                 if (Debug)
                 {
                     Console.WriteLine(text);

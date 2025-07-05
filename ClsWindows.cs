@@ -62,6 +62,8 @@
         { set; get; }
         public bool AlwaysMove
         { set; get; } = false;
+        public bool CanResize
+        { set; get; } = true;
 
         public const int Full = 0;
         public const int Contains = 1;

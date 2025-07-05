@@ -9,7 +9,7 @@ https://github.com/Hamster128/WinSize3 <br>
 # My take
 WinSize4 runs in the background consuming very little resources. Every time a window gets focus it checks its database if a window with the same criteria exists, and if so places and resizes it. The criteria is which executable that runs it and / or the title of the window, and which screen the window is on.
 
-![image](https://github.com/user-attachments/assets/e4fad087-cdd3-498b-b11d-5c52b97539c3)
+![main 1.1.3](https://github.com/user-attachments/assets/bc878d8d-49c9-4b3c-9bb7-b23af5ac10f8)
 
 The list shows which windows WinSize4 is monitoring, name of the entry, size of the screen it should be on, and if that screen is primary or not. Lines in grey are for a screen that is not currently present. There is a check mark in the bottom that select if only the windows belonging to present screens should be shown, or all.
 ## Name
@@ -32,6 +32,8 @@ To what distance from the left and top edge of the screen the window should be m
 ## Width and Height
 
 The width and height the window shall have. If 'Custom' is checked will these be the 'Custom working area' values for the screen the window is on.
+
+If the checbox is unticked will Winsize4 not change the windows size.
 
 ## Full Screen
 
@@ -61,6 +63,9 @@ If WinSize4 should detect that a screen has been removed, or a new one has been 
 ## Reset Moved
 
 This button resets the moved status of all windows and make them eligable for move.
+
+## Pause
+When selected will WinSize4 not affect any windows.
 
 # What screen?
 How does WinSize4 know what screen to place the window on? The screens are identified by the resolution they have and whether they are the primary screen or not.
