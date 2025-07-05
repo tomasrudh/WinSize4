@@ -37,7 +37,7 @@ To what distance from the left and top edge of the screen the window should be m
 
 The width and height the window shall have. If 'Custom' is checked will these be the 'Custom working area' values for the screen the window is on.
 
-If the checbox is unticked will Winsize4 not change the windows size.
+If the checkbox is unticked will Winsize4 not change the windows size.
 
 ## Full Screen
 
