@@ -8,6 +8,26 @@ namespace WinSize4
     public class ClsCurrentWindows
     {
         public List<ClsWindows> Windows = new();
+        public struct RECT
+  		{
+  			public Int32 left;
+  			public Int32 top;
+  			public Int32 right;
+  			public Int32 bottom;
+  		}
+        public struct WINDOWINFO
+        {
+            public Int32 cbSize;
+            public RECT rcWindow;
+            public RECT rcClient;
+            public Int32 dwStyle;
+            public Int32 dwExStyle;
+            public Int32 dwWindowStatus;
+            public Int32 cxWindowBorders;
+            public Int32 cyWindowBorders;
+            public Int16 atomWindowType;
+            public Int16 wCreatorVersion;
+        }
 
         //**********************************************
         /// <summary> Adds hWnd </summary>
@@ -130,6 +150,11 @@ namespace WinSize4
                 var rect = new Rectangle();
                 GetWindowRect((IntPtr)hWnd, ref rect);
 
+                const int GWL_STYLE = -16;
+                const int WS_SIZEBOX = 0x00040000;
+                int style = GetWindowLong((IntPtr)hWnd, GWL_STYLE);
+                Props.CanResize = (style & WS_SIZEBOX) != 0;
+
                 Props.Top = rect.Top;
                 Props.Left = rect.Left;
 
@@ -170,6 +195,7 @@ namespace WinSize4
                 ClsDebug.AddText("  Screen: " + savedScreenProps.BoundsWidth + " " + savedScreenProps.BoundsHeight + " " + savedScreenProps.Primary);
                 //ClsDebug.AddText("  Window: " + )
                 int Left, Top, Width, Height;
+                bool Return;
                 WINDOWPLACEMENT wp = new();
                 GetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
                 wp.showCmd = 1; // 1- Normal; 2 - Minimize; 3 - Maximize;
@@ -191,6 +217,7 @@ namespace WinSize4
                         Width = savedWindowProps.Width;
                         Left = savedWindowProps.Left;
                     }
+
                     if (savedWindowProps.MaxHeight)
                     {
                         Height = savedScreenProps.CustomHeight;
@@ -201,9 +228,20 @@ namespace WinSize4
                         Height = savedWindowProps.Height;
                         Top = savedWindowProps.Top;
                     }
+
                     SetWindowPlacement((IntPtr)this.Windows[currentWindowIndex].hWnd, ref wp);
                     ClsDebug.AddText("  Moving to: " + Left + "  " + Top + "  " + Width + "  " + Height);
-                    MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, Left, Top, Width, Height, true);
+
+                    if (savedWindowProps.CanResize)
+                        Return = MoveWindow((IntPtr)this.Windows[currentWindowIndex].hWnd, Left, Top, Width, Height, true);
+                    else
+                        Return = SetWindowPos(hWnd: (IntPtr)this.Windows[currentWindowIndex].hWnd, X: Left, Y: Top, nWidth: 0, nHeight: 0, uFlags: 1);
+
+                    if (Return == false)
+                    {
+                        ClsDebug.LogNow("Window could not be moved: " + savedWindowProps.Name);
+                        ClsDebug.LogToEvent(new Exception(""), EventLogEntryType.Error, "  Window could not be moved: " + savedWindowProps.Name);
+                    }
                 }
             }
             catch
@@ -246,10 +284,10 @@ namespace WinSize4
         //**********************************************
 
         [DllImport("user32.dll")]
-
         static extern bool SetWindowPlacement(IntPtr hWnd, [In] ref WINDOWPLACEMENT lpwndpl);
 
         [DllImport("USER32.DLL")]
+        [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
 
         [DllImport("USER32.DLL")]
@@ -261,11 +299,17 @@ namespace WinSize4
         [DllImport("user32.dll")]
         public static extern bool GetWindowRect(IntPtr hwnd, ref Rectangle rectangle);
 
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowInfo(IntPtr hwnd, out WINDOWINFO wi);
+
         [DllImport("user32.dll", SetLastError = true)]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int processId);
 
         [DllImport("user32.dll")]
         public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+
+        [DllImport("user32.dll")]
+        public static extern bool SetWindowPos(IntPtr hWnd, [In, Optional] IntPtr hWndInsertAfter, int X, int Y, int nWidth, int nHeight, uint uFlags);
 
         [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
         public static extern IntPtr SetWindowPos(IntPtr hWnd, int hWndInsertAfter, int x, int Y, int cx, int cy, int wFlags);
@@ -275,6 +319,9 @@ namespace WinSize4
 
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
         static extern IntPtr GetParent(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
         const short SWP_NOSIZE = 1;
         const short SWP_NOZORDER = 0X4;

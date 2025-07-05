@@ -60,6 +60,7 @@
             tbName = new TextBox();
             cbResetIfNewScreen = new CheckBox();
             groupBox2 = new GroupBox();
+            cbCanResize = new CheckBox();
             cbIgnoreChildWindows = new CheckBox();
             butDuplicate = new Button();
             groupBox4 = new GroupBox();
@@ -90,6 +91,7 @@
             cbRunAtLogin = new CheckBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
             txtVersion = new TextBox();
+            cbIsPaused = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox4.SuspendLayout();
@@ -402,6 +404,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(cbCanResize);
             groupBox2.Controls.Add(cbIgnoreChildWindows);
             groupBox2.Controls.Add(butDuplicate);
             groupBox2.Controls.Add(groupBox4);
@@ -437,6 +440,17 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Selected window";
             groupBox2.Enter += groupBox2_Enter;
+            // 
+            // cbCanResize
+            // 
+            cbCanResize.AutoSize = true;
+            cbCanResize.Location = new Point(131, 387);
+            cbCanResize.Margin = new Padding(4, 3, 4, 3);
+            cbCanResize.Name = "cbCanResize";
+            cbCanResize.Size = new Size(15, 14);
+            cbCanResize.TabIndex = 59;
+            cbCanResize.UseVisualStyleBackColor = true;
+            cbCanResize.CheckedChanged += cbCanResize_CheckedChanged;
             // 
             // cbIgnoreChildWindows
             // 
@@ -608,7 +622,6 @@
             tbWindowClass.Location = new Point(164, 51);
             tbWindowClass.Margin = new Padding(4, 3, 4, 3);
             tbWindowClass.Name = "tbWindowClass";
-            tbWindowClass.ReadOnly = true;
             tbWindowClass.Size = new Size(305, 23);
             tbWindowClass.TabIndex = 45;
             // 
@@ -631,6 +644,7 @@
             cbWindowClass.Size = new Size(15, 14);
             cbWindowClass.TabIndex = 47;
             cbWindowClass.UseVisualStyleBackColor = true;
+            cbWindowClass.CheckedChanged += cbWindowClass_CheckedChanged;
             // 
             // cbAlwaysMove
             // 
@@ -714,7 +728,7 @@
             // contextMenuStrip1
             // 
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(61, 4);
+            contextMenuStrip1.Size = new Size(181, 26);
             // 
             // txtVersion
             // 
@@ -727,6 +741,17 @@
             txtVersion.TabIndex = 47;
             txtVersion.TextAlign = HorizontalAlignment.Right;
             // 
+            // cbIsPaused
+            // 
+            cbIsPaused.AutoSize = true;
+            cbIsPaused.Location = new Point(594, 608);
+            cbIsPaused.Name = "cbIsPaused";
+            cbIsPaused.Size = new Size(57, 19);
+            cbIsPaused.TabIndex = 48;
+            cbIsPaused.Text = "Pause";
+            cbIsPaused.UseVisualStyleBackColor = true;
+            cbIsPaused.CheckedChanged += cbIsPaused_CheckedChanged;
+            // 
             // frmMain
             // 
             AcceptButton = butOK;
@@ -734,6 +759,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
             ClientSize = new Size(962, 674);
+            Controls.Add(cbIsPaused);
             Controls.Add(txtVersion);
             Controls.Add(cbRunAtLogin);
             Controls.Add(cbShowAllWindows);
@@ -795,7 +821,6 @@
         private ComboBox cbHotKeyLeft;
         private TextBox tbHotKeyCharacter;
         private ComboBox cbHotKeyRight;
-        private NotifyIcon notifyIcon1;
         private Label label7;
         private TextBox tbName;
         private CheckBox cbResetIfNewScreen;
@@ -827,9 +852,12 @@
         private RadioButton radioFullExclude;
         private TextBox tbTitleExclude;
         private CheckBox cbSearchTitleExclude;
-        private ContextMenuStrip contextMenuStrip1;
         private TextBox txtVersion;
         private Button butDuplicate;
+        private CheckBox cbCanResize;
+        public NotifyIcon notifyIcon1;
+        private ContextMenuStrip contextMenuStrip1;
+        private CheckBox cbIsPaused;
     }
 }
 

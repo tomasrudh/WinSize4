@@ -18,6 +18,7 @@ namespace WinSize4
         private string _fileNameWindows = "Settings.json";
         public bool Debug = false;
         public int Interval = 500;
+        public bool isPaused = false;
 
         //**********************************************
         /// <summary> Saves data to disk </summary>
@@ -33,6 +34,7 @@ namespace WinSize4
             saveList.runAtLogin = this.runAtLogin;
             saveList.Debug = ClsDebug.Debug;
             saveList.Interval = this.Interval;
+            saveList.isPaused = this.isPaused;
 
             var options = new JsonSerializerOptions()
             {
@@ -71,6 +73,7 @@ namespace WinSize4
                     ClsDebug.Debug = saveList.Debug;
                     if (saveList.Interval > 0)
                         this.Interval = saveList.Interval;
+                    this.isPaused = saveList.isPaused;
                 }
             }
             catch (Exception e)
@@ -127,6 +130,8 @@ namespace WinSize4
         public bool Debug
         { set; get; }
         public int Interval
+        { set; get; }
+        public bool isPaused
         { set; get; }
     }
 }
