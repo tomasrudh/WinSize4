@@ -448,8 +448,8 @@ namespace WinSize4
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
                         currentWindowProps.Title != _lastTitle &&
-                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true) &&
-                        !_savedWindows.Props[targetSavedWindowsIndex].Disabled)
+                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true))
+                        //&& !_savedWindows.Props[targetSavedWindowsIndex].Disabled)
                     {
                         int targetScreenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[targetSavedWindowsIndex]);
                         //bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
@@ -1422,73 +1422,6 @@ namespace WinSize4
             this.listView1.Resize += new System.EventHandler(this.listView1_Resize);
             this.listView1.ColumnWidthChanging += new System.Windows.Forms.ColumnWidthChangingEventHandler(this.listView1_ColumnWidthChanging);
             this.listView1.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.listView1_ColumnWidthChanged);
-        }
-
-        private void listView1_MouseDown(object sender, MouseEventArgs e)
-        {
-            ListViewHitTestInfo hitTest = listView1.HitTest(e.Location);
-            if (hitTest.Item == null || hitTest.SubItem == null) return;
-
-            int columnIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
-            if (columnIndex < 0) return;
-            ColumnHeader clickedColumn = listView1.Columns[columnIndex];
-
-            // --- CRITICAL FIX: Check the column's TEXT, not its NAME ---
-            if (clickedColumn.Text == "Disabled")
-            {
-                int tag = hitTest.Item.Tag as int? ?? -1;
-                if (tag == -1) return;
-
-                int savedWindowIndex = _savedWindows.GetWindowIndexByTag(tag);
-                if (savedWindowIndex < 0) return;
-
-                var windowProps = _savedWindows.Props[savedWindowIndex];
-                windowProps.Disabled = !windowProps.Disabled;
-                _savedWindows.Save();
-                listView1.Invalidate(hitTest.Item.Bounds);
-            }
-        }
-
-        private void listView1_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
-        {
-            try
-            {
-                // --- CRITICAL FIX: We now check the Header's NAME, which we set in the designer ---
-                if (e.Header.Name == "colDisabled")
-                {
-                    ClsDebug.LogNow($"[DrawDebug] DrawSubItem: Fired for Item {e.Item.Index}, Column {e.ColumnIndex}. Path: CUSTOM DRAW.");
-
-                    // First, let the system draw the cell's background. This handles selection highlights.
-                    e.DrawBackground();
-
-                    // Now, we draw our custom content (the checkbox) on top.
-                    int tag = e.Item.Tag as int? ?? -1;
-                    if (tag == -1) return;
-                    int savedWindowIndex = _savedWindows.GetWindowIndexByTag(tag);
-                    if (savedWindowIndex < 0) return;
-
-                    var windowProps = _savedWindows.Props[savedWindowIndex];
-                    var checkBoxState = windowProps.Disabled
-                        ? System.Windows.Forms.VisualStyles.CheckBoxState.CheckedNormal
-                        : System.Windows.Forms.VisualStyles.CheckBoxState.UncheckedNormal;
-
-                    Point checkBoxPosition = new Point(
-                        e.Bounds.Left + (e.Bounds.Width / 2) - 7,
-                        e.Bounds.Top + (e.Bounds.Height / 2) - 7);
-
-                    CheckBoxRenderer.DrawCheckBox(e.Graphics, checkBoxPosition, checkBoxState);
-                }
-                else
-                {
-                    ClsDebug.LogNow($"[DrawDebug] DrawSubItem: Fired for Item {e.Item.Index}, Column {e.ColumnIndex}. Path: DEFAULT DRAW.");
-                    // For ALL other columns, we let the highly optimized system renderer do all the work.
-                    e.DrawDefault = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                ClsDebug.LogNow($"[DrawDebug] DrawSubItem: CRITICAL ERROR on Item {e.Item.Index}, Column {e.ColumnIndex}! {ex.Message}");
-            }
         }
     }
 }

@@ -88,7 +88,6 @@
             columnHeader2 = new ColumnHeader();
             columnHeader3 = new ColumnHeader();
             columnHeader4 = new ColumnHeader();
-            colDisabled = new ColumnHeader();
             cbShowAllWindows = new CheckBox();
             cbRunAtLogin = new CheckBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
@@ -690,13 +689,12 @@
             // 
             // listView1
             // 
-            listView1.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, colDisabled });
+            listView1.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4 });
             listView1.FullRowSelect = true;
             listView1.Location = new Point(20, 23);
             listView1.Margin = new Padding(6, 5, 6, 5);
             listView1.MultiSelect = false;
             listView1.Name = "listView1";
-            listView1.OwnerDraw = true;
             listView1.Size = new Size(615, 1019);
             listView1.Sorting = SortOrder.Ascending;
             listView1.TabIndex = 44;
@@ -704,11 +702,9 @@
             listView1.View = View.Details;
             listView1.ColumnWidthChanged += listView1_ColumnWidthChanged;
             listView1.ColumnWidthChanging += listView1_ColumnWidthChanging;
-            listView1.DrawSubItem += listView1_DrawSubItem;
             listView1.SelectedIndexChanged += listView1_SelectedIndexChanged;
             listView1.KeyDown += listView1_KeyDown;
             listView1.MouseClick += listView1_MouseClick;
-            listView1.MouseDown += listView1_MouseDown;
             listView1.Resize += listView1_Resize;
             // 
             // columnHeader1
@@ -727,10 +723,6 @@
             // columnHeader4
             // 
             columnHeader4.Text = "Primary";
-            // 
-            // colDisabled
-            // 
-            colDisabled.Text = "Disabled";
             // 
             // cbShowAllWindows
             // 
@@ -921,7 +913,6 @@
         private CheckBox chkResetOnMinimize;
         private Button btnResetColumns;
         private CheckBox chkDisabled;
-        private ColumnHeader colDisabled;
     }
 }
 
