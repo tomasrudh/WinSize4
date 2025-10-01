@@ -60,6 +60,7 @@
             tbName = new TextBox();
             cbResetIfNewScreen = new CheckBox();
             groupBox2 = new GroupBox();
+            chkDisabled = new CheckBox();
             cbCanResize = new CheckBox();
             cbIgnoreChildWindows = new CheckBox();
             butDuplicate = new Button();
@@ -87,11 +88,14 @@
             columnHeader2 = new ColumnHeader();
             columnHeader3 = new ColumnHeader();
             columnHeader4 = new ColumnHeader();
+            colDisabled = new ColumnHeader();
             cbShowAllWindows = new CheckBox();
             cbRunAtLogin = new CheckBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
             txtVersion = new TextBox();
             cbIsPaused = new CheckBox();
+            chkResetOnMinimize = new CheckBox();
+            btnResetColumns = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox4.SuspendLayout();
@@ -107,27 +111,27 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(14, 287);
-            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Location = new Point(24, 438);
+            label2.Margin = new Padding(6, 0, 6, 0);
             label2.Name = "label2";
-            label2.Size = new Size(63, 15);
+            label2.Size = new Size(95, 25);
             label2.TabIndex = 4;
             label2.Text = "Executable";
             // 
             // tbExe
             // 
-            tbExe.Location = new Point(168, 278);
-            tbExe.Margin = new Padding(4, 3, 4, 3);
+            tbExe.Location = new Point(240, 435);
+            tbExe.Margin = new Padding(6, 5, 6, 5);
             tbExe.Name = "tbExe";
-            tbExe.Size = new Size(305, 23);
+            tbExe.Size = new Size(434, 31);
             tbExe.TabIndex = 3;
             // 
             // butOK
             // 
-            butOK.Location = new Point(540, 633);
-            butOK.Margin = new Padding(4, 3, 4, 3);
+            butOK.Location = new Point(771, 1096);
+            butOK.Margin = new Padding(6, 5, 6, 5);
             butOK.Name = "butOK";
-            butOK.Size = new Size(124, 27);
+            butOK.Size = new Size(177, 45);
             butOK.TabIndex = 5;
             butOK.Text = "Apply and Hide";
             butOK.UseVisualStyleBackColor = true;
@@ -135,10 +139,10 @@
             // 
             // butApply
             // 
-            butApply.Location = new Point(765, 633);
-            butApply.Margin = new Padding(4, 3, 4, 3);
+            butApply.Location = new Point(1093, 1096);
+            butApply.Margin = new Padding(6, 5, 6, 5);
             butApply.Name = "butApply";
-            butApply.Size = new Size(88, 27);
+            butApply.Size = new Size(126, 45);
             butApply.TabIndex = 6;
             butApply.Text = "Apply";
             butApply.UseVisualStyleBackColor = true;
@@ -146,10 +150,10 @@
             // 
             // butExit
             // 
-            butExit.Location = new Point(859, 633);
-            butExit.Margin = new Padding(4, 3, 4, 3);
+            butExit.Location = new Point(1227, 1096);
+            butExit.Margin = new Padding(6, 5, 6, 5);
             butExit.Name = "butExit";
-            butExit.Size = new Size(88, 27);
+            butExit.Size = new Size(126, 45);
             butExit.TabIndex = 7;
             butExit.Text = "Exit";
             butExit.UseVisualStyleBackColor = true;
@@ -157,10 +161,10 @@
             // 
             // butRemove
             // 
-            butRemove.Location = new Point(12, 428);
-            butRemove.Margin = new Padding(4, 3, 4, 3);
+            butRemove.Location = new Point(17, 685);
+            butRemove.Margin = new Padding(6, 5, 6, 5);
             butRemove.Name = "butRemove";
-            butRemove.Size = new Size(136, 27);
+            butRemove.Size = new Size(194, 45);
             butRemove.TabIndex = 8;
             butRemove.Text = "Remove";
             butRemove.UseVisualStyleBackColor = true;
@@ -169,86 +173,86 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(14, 312);
-            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Location = new Point(24, 488);
+            label3.Margin = new Padding(6, 0, 6, 0);
             label3.Name = "label3";
-            label3.Size = new Size(27, 15);
+            label3.Size = new Size(41, 25);
             label3.TabIndex = 10;
             label3.Text = "Left";
             // 
             // tbLeft
             // 
-            tbLeft.Location = new Point(168, 308);
-            tbLeft.Margin = new Padding(4, 3, 4, 3);
+            tbLeft.Location = new Point(240, 485);
+            tbLeft.Margin = new Padding(6, 5, 6, 5);
             tbLeft.Name = "tbLeft";
-            tbLeft.Size = new Size(131, 23);
+            tbLeft.Size = new Size(185, 31);
             tbLeft.TabIndex = 9;
             tbLeft.TextChanged += tbLeft_TextChanged;
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(14, 342);
-            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Location = new Point(25, 538);
+            label4.Margin = new Padding(6, 0, 6, 0);
             label4.Name = "label4";
-            label4.Size = new Size(27, 15);
+            label4.Size = new Size(41, 25);
             label4.TabIndex = 12;
             label4.Text = "Top";
             // 
             // tbTop
             // 
-            tbTop.Location = new Point(168, 338);
-            tbTop.Margin = new Padding(4, 3, 4, 3);
+            tbTop.Location = new Point(240, 535);
+            tbTop.Margin = new Padding(6, 5, 6, 5);
             tbTop.Name = "tbTop";
-            tbTop.Size = new Size(131, 23);
+            tbTop.Size = new Size(185, 31);
             tbTop.TabIndex = 11;
             tbTop.TextChanged += tbTop_TextChanged;
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(14, 377);
-            label5.Margin = new Padding(4, 0, 4, 0);
+            label5.Location = new Point(25, 590);
+            label5.Margin = new Padding(6, 0, 6, 0);
             label5.Name = "label5";
-            label5.Size = new Size(39, 15);
+            label5.Size = new Size(60, 25);
             label5.TabIndex = 14;
             label5.Text = "Width";
             // 
             // tbWidth
             // 
-            tbWidth.Location = new Point(168, 368);
-            tbWidth.Margin = new Padding(4, 3, 4, 3);
+            tbWidth.Location = new Point(240, 585);
+            tbWidth.Margin = new Padding(6, 5, 6, 5);
             tbWidth.Name = "tbWidth";
-            tbWidth.Size = new Size(131, 23);
+            tbWidth.Size = new Size(185, 31);
             tbWidth.TabIndex = 13;
             tbWidth.TextChanged += tbWidth_TextChanged;
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(14, 407);
-            label6.Margin = new Padding(4, 0, 4, 0);
+            label6.Location = new Point(24, 638);
+            label6.Margin = new Padding(6, 0, 6, 0);
             label6.Name = "label6";
-            label6.Size = new Size(43, 15);
+            label6.Size = new Size(65, 25);
             label6.TabIndex = 16;
             label6.Text = "Height";
             // 
             // tbHeight
             // 
-            tbHeight.Location = new Point(168, 398);
-            tbHeight.Margin = new Padding(4, 3, 4, 3);
+            tbHeight.Location = new Point(240, 635);
+            tbHeight.Margin = new Padding(6, 5, 6, 5);
             tbHeight.Name = "tbHeight";
-            tbHeight.Size = new Size(131, 23);
+            tbHeight.Size = new Size(185, 31);
             tbHeight.TabIndex = 15;
             tbHeight.TextChanged += tbHeight_TextChanged;
             // 
             // cbCustomWidth
             // 
             cbCustomWidth.AutoSize = true;
-            cbCustomWidth.Location = new Point(330, 370);
-            cbCustomWidth.Margin = new Padding(4, 3, 4, 3);
+            cbCustomWidth.Location = new Point(471, 589);
+            cbCustomWidth.Margin = new Padding(6, 5, 6, 5);
             cbCustomWidth.Name = "cbCustomWidth";
-            cbCustomWidth.Size = new Size(68, 19);
+            cbCustomWidth.Size = new Size(100, 29);
             cbCustomWidth.TabIndex = 17;
             cbCustomWidth.Text = "Custom";
             cbCustomWidth.UseVisualStyleBackColor = true;
@@ -258,10 +262,10 @@
             // cbCustomHeight
             // 
             cbCustomHeight.AutoSize = true;
-            cbCustomHeight.Location = new Point(330, 400);
-            cbCustomHeight.Margin = new Padding(4, 3, 4, 3);
+            cbCustomHeight.Location = new Point(471, 637);
+            cbCustomHeight.Margin = new Padding(6, 5, 6, 5);
             cbCustomHeight.Name = "cbCustomHeight";
-            cbCustomHeight.Size = new Size(68, 19);
+            cbCustomHeight.Size = new Size(100, 29);
             cbCustomHeight.TabIndex = 18;
             cbCustomHeight.Text = "Custom";
             cbCustomHeight.UseVisualStyleBackColor = true;
@@ -271,10 +275,10 @@
             // cbFullScreen
             // 
             cbFullScreen.AutoSize = true;
-            cbFullScreen.Location = new Point(17, 461);
-            cbFullScreen.Margin = new Padding(4, 3, 4, 3);
+            cbFullScreen.Location = new Point(24, 740);
+            cbFullScreen.Margin = new Padding(6, 5, 6, 5);
             cbFullScreen.Name = "cbFullScreen";
-            cbFullScreen.Size = new Size(82, 19);
+            cbFullScreen.Size = new Size(120, 29);
             cbFullScreen.TabIndex = 19;
             cbFullScreen.Text = "Full screen";
             cbFullScreen.UseVisualStyleBackColor = true;
@@ -284,10 +288,10 @@
             // butCancel
             // 
             butCancel.DialogResult = DialogResult.Cancel;
-            butCancel.Location = new Point(670, 633);
-            butCancel.Margin = new Padding(4, 3, 4, 3);
+            butCancel.Location = new Point(957, 1096);
+            butCancel.Margin = new Padding(6, 5, 6, 5);
             butCancel.Name = "butCancel";
-            butCancel.Size = new Size(88, 27);
+            butCancel.Size = new Size(126, 45);
             butCancel.TabIndex = 20;
             butCancel.Text = "Hide";
             butCancel.UseVisualStyleBackColor = true;
@@ -295,10 +299,10 @@
             // 
             // butEditScreens
             // 
-            butEditScreens.Location = new Point(811, 563);
-            butEditScreens.Margin = new Padding(4, 3, 4, 3);
+            butEditScreens.Location = new Point(1159, 979);
+            butEditScreens.Margin = new Padding(6, 5, 6, 5);
             butEditScreens.Name = "butEditScreens";
-            butEditScreens.Size = new Size(136, 27);
+            butEditScreens.Size = new Size(194, 45);
             butEditScreens.TabIndex = 33;
             butEditScreens.Text = "Edit screens";
             butEditScreens.UseVisualStyleBackColor = true;
@@ -307,10 +311,10 @@
             // cbSearchExe
             // 
             cbSearchExe.AutoSize = true;
-            cbSearchExe.Location = new Point(131, 288);
-            cbSearchExe.Margin = new Padding(4, 3, 4, 3);
+            cbSearchExe.Location = new Point(187, 441);
+            cbSearchExe.Margin = new Padding(6, 5, 6, 5);
             cbSearchExe.Name = "cbSearchExe";
-            cbSearchExe.Size = new Size(15, 14);
+            cbSearchExe.Size = new Size(22, 21);
             cbSearchExe.TabIndex = 36;
             cbSearchExe.UseVisualStyleBackColor = true;
             cbSearchExe.CheckedChanged += cbSearchExe_CheckedChanged;
@@ -320,11 +324,11 @@
             groupBox1.Controls.Add(tbHotKeyCharacter);
             groupBox1.Controls.Add(cbHotKeyRight);
             groupBox1.Controls.Add(cbHotKeyLeft);
-            groupBox1.Location = new Point(463, 541);
-            groupBox1.Margin = new Padding(4, 3, 4, 3);
+            groupBox1.Location = new Point(661, 943);
+            groupBox1.Margin = new Padding(6, 5, 6, 5);
             groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(4, 3, 4, 3);
-            groupBox1.Size = new Size(298, 61);
+            groupBox1.Padding = new Padding(6, 5, 6, 5);
+            groupBox1.Size = new Size(426, 102);
             groupBox1.TabIndex = 38;
             groupBox1.TabStop = false;
             groupBox1.Text = "Hotkey";
@@ -332,11 +336,11 @@
             // tbHotKeyCharacter
             // 
             tbHotKeyCharacter.CharacterCasing = CharacterCasing.Upper;
-            tbHotKeyCharacter.Location = new Point(231, 22);
-            tbHotKeyCharacter.Margin = new Padding(4, 3, 4, 3);
+            tbHotKeyCharacter.Location = new Point(330, 37);
+            tbHotKeyCharacter.Margin = new Padding(6, 5, 6, 5);
             tbHotKeyCharacter.MaxLength = 1;
             tbHotKeyCharacter.Name = "tbHotKeyCharacter";
-            tbHotKeyCharacter.Size = new Size(53, 23);
+            tbHotKeyCharacter.Size = new Size(74, 31);
             tbHotKeyCharacter.TabIndex = 2;
             tbHotKeyCharacter.TextAlign = HorizontalAlignment.Center;
             tbHotKeyCharacter.TextChanged += tbHotKeyCharacter_TextChanged;
@@ -345,10 +349,10 @@
             // 
             cbHotKeyRight.FormattingEnabled = true;
             cbHotKeyRight.Items.AddRange(new object[] { "None" });
-            cbHotKeyRight.Location = new Point(120, 22);
-            cbHotKeyRight.Margin = new Padding(4, 3, 4, 3);
+            cbHotKeyRight.Location = new Point(171, 37);
+            cbHotKeyRight.Margin = new Padding(6, 5, 6, 5);
             cbHotKeyRight.Name = "cbHotKeyRight";
-            cbHotKeyRight.Size = new Size(103, 23);
+            cbHotKeyRight.Size = new Size(145, 33);
             cbHotKeyRight.TabIndex = 1;
             cbHotKeyRight.SelectedIndexChanged += cbHotKeyRight_SelectedIndexChanged;
             // 
@@ -356,10 +360,10 @@
             // 
             cbHotKeyLeft.FormattingEnabled = true;
             cbHotKeyLeft.Items.AddRange(new object[] { "Alt", "Ctrl", "Shift" });
-            cbHotKeyLeft.Location = new Point(9, 22);
-            cbHotKeyLeft.Margin = new Padding(4, 3, 4, 3);
+            cbHotKeyLeft.Location = new Point(13, 37);
+            cbHotKeyLeft.Margin = new Padding(6, 5, 6, 5);
             cbHotKeyLeft.Name = "cbHotKeyLeft";
-            cbHotKeyLeft.Size = new Size(103, 23);
+            cbHotKeyLeft.Size = new Size(145, 33);
             cbHotKeyLeft.TabIndex = 0;
             cbHotKeyLeft.SelectedIndexChanged += cbHotKeyLeft_SelectedIndexChanged;
             // 
@@ -374,36 +378,37 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(10, 30);
-            label7.Margin = new Padding(4, 0, 4, 0);
+            label7.Location = new Point(24, 40);
+            label7.Margin = new Padding(6, 0, 6, 0);
             label7.Name = "label7";
-            label7.Size = new Size(39, 15);
+            label7.Size = new Size(59, 25);
             label7.TabIndex = 40;
             label7.Text = "Name";
             // 
             // tbName
             // 
-            tbName.Location = new Point(164, 22);
-            tbName.Margin = new Padding(4, 3, 4, 3);
+            tbName.Location = new Point(234, 37);
+            tbName.Margin = new Padding(6, 5, 6, 5);
             tbName.Name = "tbName";
-            tbName.Size = new Size(305, 23);
+            tbName.Size = new Size(434, 31);
             tbName.TabIndex = 39;
             // 
             // cbResetIfNewScreen
             // 
             cbResetIfNewScreen.AutoSize = true;
-            cbResetIfNewScreen.Location = new Point(480, 516);
-            cbResetIfNewScreen.Margin = new Padding(4, 3, 4, 3);
+            cbResetIfNewScreen.Location = new Point(685, 860);
+            cbResetIfNewScreen.Margin = new Padding(6, 5, 6, 5);
             cbResetIfNewScreen.Name = "cbResetIfNewScreen";
-            cbResetIfNewScreen.Size = new Size(226, 19);
+            cbResetIfNewScreen.Size = new Size(360, 29);
             cbResetIfNewScreen.TabIndex = 41;
-            cbResetIfNewScreen.Text = "Reset moved if new screen is detected";
+            cbResetIfNewScreen.Text = "Reset 'Movable' if new screen is detected";
             cbResetIfNewScreen.UseVisualStyleBackColor = true;
             cbResetIfNewScreen.CheckedChanged += cbResetIfNewScreen_CheckedChanged;
             cbResetIfNewScreen.MouseHover += checkBox_MouseHover;
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(chkDisabled);
             groupBox2.Controls.Add(cbCanResize);
             groupBox2.Controls.Add(cbIgnoreChildWindows);
             groupBox2.Controls.Add(butDuplicate);
@@ -431,23 +436,33 @@
             groupBox2.Controls.Add(cbCustomWidth);
             groupBox2.Controls.Add(cbFullScreen);
             groupBox2.Controls.Add(cbCustomHeight);
-            groupBox2.Location = new Point(463, 14);
-            groupBox2.Margin = new Padding(4, 3, 4, 3);
+            groupBox2.Location = new Point(661, 23);
+            groupBox2.Margin = new Padding(6, 5, 6, 5);
             groupBox2.Name = "groupBox2";
-            groupBox2.Padding = new Padding(4, 3, 4, 3);
-            groupBox2.Size = new Size(484, 492);
+            groupBox2.Padding = new Padding(6, 5, 6, 5);
+            groupBox2.Size = new Size(691, 820);
             groupBox2.TabIndex = 42;
             groupBox2.TabStop = false;
             groupBox2.Text = "Selected window";
-            groupBox2.Enter += groupBox2_Enter;
+            // 
+            // chkDisabled
+            // 
+            chkDisabled.AutoSize = true;
+            chkDisabled.Location = new Point(24, 779);
+            chkDisabled.Margin = new Padding(6, 5, 6, 5);
+            chkDisabled.Name = "chkDisabled";
+            chkDisabled.Size = new Size(107, 29);
+            chkDisabled.TabIndex = 60;
+            chkDisabled.Text = "Disabled";
+            chkDisabled.UseVisualStyleBackColor = true;
             // 
             // cbCanResize
             // 
             cbCanResize.AutoSize = true;
-            cbCanResize.Location = new Point(131, 387);
-            cbCanResize.Margin = new Padding(4, 3, 4, 3);
+            cbCanResize.Location = new Point(187, 617);
+            cbCanResize.Margin = new Padding(6, 5, 6, 5);
             cbCanResize.Name = "cbCanResize";
-            cbCanResize.Size = new Size(15, 14);
+            cbCanResize.Size = new Size(22, 21);
             cbCanResize.TabIndex = 59;
             cbCanResize.UseVisualStyleBackColor = true;
             cbCanResize.CheckedChanged += cbCanResize_CheckedChanged;
@@ -455,19 +470,20 @@
             // cbIgnoreChildWindows
             // 
             cbIgnoreChildWindows.AutoSize = true;
-            cbIgnoreChildWindows.Location = new Point(152, 461);
+            cbIgnoreChildWindows.Location = new Point(217, 740);
+            cbIgnoreChildWindows.Margin = new Padding(4, 5, 4, 5);
             cbIgnoreChildWindows.Name = "cbIgnoreChildWindows";
-            cbIgnoreChildWindows.Size = new Size(143, 19);
+            cbIgnoreChildWindows.Size = new Size(214, 29);
             cbIgnoreChildWindows.TabIndex = 58;
             cbIgnoreChildWindows.Text = "Ignore Child Windows";
             cbIgnoreChildWindows.UseVisualStyleBackColor = true;
             // 
             // butDuplicate
             // 
-            butDuplicate.Location = new Point(164, 428);
-            butDuplicate.Margin = new Padding(4, 3, 4, 3);
+            butDuplicate.Location = new Point(234, 685);
+            butDuplicate.Margin = new Padding(6, 5, 6, 5);
             butDuplicate.Name = "butDuplicate";
-            butDuplicate.Size = new Size(136, 27);
+            butDuplicate.Size = new Size(194, 45);
             butDuplicate.TabIndex = 57;
             butDuplicate.Text = "Duplicate";
             butDuplicate.UseVisualStyleBackColor = true;
@@ -480,9 +496,11 @@
             groupBox4.Controls.Add(radioFullInclude);
             groupBox4.Controls.Add(tbTitleInclude);
             groupBox4.Controls.Add(cbSearchTitleInclude);
-            groupBox4.Location = new Point(10, 84);
+            groupBox4.Location = new Point(17, 136);
+            groupBox4.Margin = new Padding(4, 5, 4, 5);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(467, 92);
+            groupBox4.Padding = new Padding(4, 5, 4, 5);
+            groupBox4.Size = new Size(667, 138);
             groupBox4.TabIndex = 56;
             groupBox4.TabStop = false;
             groupBox4.Text = "Window Title Include";
@@ -490,10 +508,10 @@
             // radioStartsWithInclude
             // 
             radioStartsWithInclude.AutoSize = true;
-            radioStartsWithInclude.Location = new Point(162, 60);
-            radioStartsWithInclude.Margin = new Padding(4, 3, 4, 3);
+            radioStartsWithInclude.Location = new Point(231, 100);
+            radioStartsWithInclude.Margin = new Padding(6, 5, 6, 5);
             radioStartsWithInclude.Name = "radioStartsWithInclude";
-            radioStartsWithInclude.Size = new Size(80, 19);
+            radioStartsWithInclude.Size = new Size(119, 29);
             radioStartsWithInclude.TabIndex = 49;
             radioStartsWithInclude.Text = "Starts with";
             radioStartsWithInclude.UseVisualStyleBackColor = true;
@@ -501,10 +519,10 @@
             // radioContainsInclude
             // 
             radioContainsInclude.AutoSize = true;
-            radioContainsInclude.Location = new Point(82, 60);
-            radioContainsInclude.Margin = new Padding(4, 3, 4, 3);
+            radioContainsInclude.Location = new Point(117, 100);
+            radioContainsInclude.Margin = new Padding(6, 5, 6, 5);
             radioContainsInclude.Name = "radioContainsInclude";
-            radioContainsInclude.Size = new Size(72, 19);
+            radioContainsInclude.Size = new Size(106, 29);
             radioContainsInclude.TabIndex = 48;
             radioContainsInclude.Text = "Contains";
             radioContainsInclude.UseVisualStyleBackColor = true;
@@ -512,30 +530,30 @@
             // radioFullInclude
             // 
             radioFullInclude.AutoSize = true;
-            radioFullInclude.Location = new Point(30, 60);
-            radioFullInclude.Margin = new Padding(4, 3, 4, 3);
+            radioFullInclude.Location = new Point(43, 100);
+            radioFullInclude.Margin = new Padding(6, 5, 6, 5);
             radioFullInclude.Name = "radioFullInclude";
-            radioFullInclude.Size = new Size(44, 19);
+            radioFullInclude.Size = new Size(64, 29);
             radioFullInclude.TabIndex = 47;
             radioFullInclude.Text = "Full";
             radioFullInclude.UseVisualStyleBackColor = true;
             // 
             // tbTitleInclude
             // 
-            tbTitleInclude.Location = new Point(30, 31);
-            tbTitleInclude.Margin = new Padding(4, 3, 4, 3);
+            tbTitleInclude.Location = new Point(43, 52);
+            tbTitleInclude.Margin = new Padding(6, 5, 6, 5);
             tbTitleInclude.Name = "tbTitleInclude";
-            tbTitleInclude.Size = new Size(433, 23);
+            tbTitleInclude.Size = new Size(617, 31);
             tbTitleInclude.TabIndex = 44;
             tbTitleInclude.TextChanged += tbTitleInclude_TextChanged;
             // 
             // cbSearchTitleInclude
             // 
             cbSearchTitleInclude.AutoSize = true;
-            cbSearchTitleInclude.Location = new Point(7, 35);
-            cbSearchTitleInclude.Margin = new Padding(4, 3, 4, 3);
+            cbSearchTitleInclude.Location = new Point(10, 58);
+            cbSearchTitleInclude.Margin = new Padding(6, 5, 6, 5);
             cbSearchTitleInclude.Name = "cbSearchTitleInclude";
-            cbSearchTitleInclude.Size = new Size(15, 14);
+            cbSearchTitleInclude.Size = new Size(22, 21);
             cbSearchTitleInclude.TabIndex = 46;
             cbSearchTitleInclude.UseVisualStyleBackColor = true;
             cbSearchTitleInclude.CheckedChanged += cbSearchTitleInclude_CheckedChanged;
@@ -547,9 +565,11 @@
             groupBox3.Controls.Add(radioFullExclude);
             groupBox3.Controls.Add(tbTitleExclude);
             groupBox3.Controls.Add(cbSearchTitleExclude);
-            groupBox3.Location = new Point(10, 182);
+            groupBox3.Location = new Point(14, 284);
+            groupBox3.Margin = new Padding(4, 5, 4, 5);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(467, 90);
+            groupBox3.Padding = new Padding(4, 5, 4, 5);
+            groupBox3.Size = new Size(667, 138);
             groupBox3.TabIndex = 55;
             groupBox3.TabStop = false;
             groupBox3.Text = "Window Title Exclude";
@@ -557,10 +577,10 @@
             // radioStartsWithExclude
             // 
             radioStartsWithExclude.AutoSize = true;
-            radioStartsWithExclude.Location = new Point(162, 56);
-            radioStartsWithExclude.Margin = new Padding(4, 3, 4, 3);
+            radioStartsWithExclude.Location = new Point(231, 93);
+            radioStartsWithExclude.Margin = new Padding(6, 5, 6, 5);
             radioStartsWithExclude.Name = "radioStartsWithExclude";
-            radioStartsWithExclude.Size = new Size(80, 19);
+            radioStartsWithExclude.Size = new Size(119, 29);
             radioStartsWithExclude.TabIndex = 60;
             radioStartsWithExclude.Text = "Starts with";
             radioStartsWithExclude.UseVisualStyleBackColor = true;
@@ -568,10 +588,10 @@
             // radioContainsExclude
             // 
             radioContainsExclude.AutoSize = true;
-            radioContainsExclude.Location = new Point(82, 56);
-            radioContainsExclude.Margin = new Padding(4, 3, 4, 3);
+            radioContainsExclude.Location = new Point(117, 93);
+            radioContainsExclude.Margin = new Padding(6, 5, 6, 5);
             radioContainsExclude.Name = "radioContainsExclude";
-            radioContainsExclude.Size = new Size(72, 19);
+            radioContainsExclude.Size = new Size(106, 29);
             radioContainsExclude.TabIndex = 59;
             radioContainsExclude.Text = "Contains";
             radioContainsExclude.UseVisualStyleBackColor = true;
@@ -579,30 +599,30 @@
             // radioFullExclude
             // 
             radioFullExclude.AutoSize = true;
-            radioFullExclude.Location = new Point(30, 56);
-            radioFullExclude.Margin = new Padding(4, 3, 4, 3);
+            radioFullExclude.Location = new Point(43, 93);
+            radioFullExclude.Margin = new Padding(6, 5, 6, 5);
             radioFullExclude.Name = "radioFullExclude";
-            radioFullExclude.Size = new Size(44, 19);
+            radioFullExclude.Size = new Size(64, 29);
             radioFullExclude.TabIndex = 58;
             radioFullExclude.Text = "Full";
             radioFullExclude.UseVisualStyleBackColor = true;
             // 
             // tbTitleExclude
             // 
-            tbTitleExclude.Location = new Point(30, 27);
-            tbTitleExclude.Margin = new Padding(4, 3, 4, 3);
+            tbTitleExclude.Location = new Point(43, 45);
+            tbTitleExclude.Margin = new Padding(6, 5, 6, 5);
             tbTitleExclude.Name = "tbTitleExclude";
-            tbTitleExclude.Size = new Size(433, 23);
+            tbTitleExclude.Size = new Size(617, 31);
             tbTitleExclude.TabIndex = 55;
             tbTitleExclude.TextChanged += tbTitleExclude_TextChanged;
             // 
             // cbSearchTitleExclude
             // 
             cbSearchTitleExclude.AutoSize = true;
-            cbSearchTitleExclude.Location = new Point(7, 31);
-            cbSearchTitleExclude.Margin = new Padding(4, 3, 4, 3);
+            cbSearchTitleExclude.Location = new Point(10, 52);
+            cbSearchTitleExclude.Margin = new Padding(6, 5, 6, 5);
             cbSearchTitleExclude.Name = "cbSearchTitleExclude";
-            cbSearchTitleExclude.Size = new Size(15, 14);
+            cbSearchTitleExclude.Size = new Size(22, 21);
             cbSearchTitleExclude.TabIndex = 57;
             cbSearchTitleExclude.UseVisualStyleBackColor = true;
             cbSearchTitleExclude.CheckedChanged += cbSearchTitleExclude_CheckedChanged;
@@ -610,38 +630,38 @@
             // tbSavedWindowIndex
             // 
             tbSavedWindowIndex.AutoSize = true;
-            tbSavedWindowIndex.Location = new Point(120, 30);
-            tbSavedWindowIndex.Margin = new Padding(4, 0, 4, 0);
+            tbSavedWindowIndex.Location = new Point(183, 40);
+            tbSavedWindowIndex.Margin = new Padding(6, 0, 6, 0);
             tbSavedWindowIndex.Name = "tbSavedWindowIndex";
-            tbSavedWindowIndex.Size = new Size(13, 15);
+            tbSavedWindowIndex.Size = new Size(22, 25);
             tbSavedWindowIndex.TabIndex = 48;
             tbSavedWindowIndex.Text = "0";
             // 
             // tbWindowClass
             // 
-            tbWindowClass.Location = new Point(164, 51);
-            tbWindowClass.Margin = new Padding(4, 3, 4, 3);
+            tbWindowClass.Location = new Point(234, 85);
+            tbWindowClass.Margin = new Padding(6, 5, 6, 5);
             tbWindowClass.Name = "tbWindowClass";
-            tbWindowClass.Size = new Size(305, 23);
+            tbWindowClass.Size = new Size(434, 31);
             tbWindowClass.TabIndex = 45;
             // 
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(10, 59);
-            label8.Margin = new Padding(4, 0, 4, 0);
+            label8.Location = new Point(24, 87);
+            label8.Margin = new Padding(6, 0, 6, 0);
             label8.Name = "label8";
-            label8.Size = new Size(81, 15);
+            label8.Size = new Size(123, 25);
             label8.TabIndex = 46;
             label8.Text = "Window Class";
             // 
             // cbWindowClass
             // 
             cbWindowClass.AutoSize = true;
-            cbWindowClass.Location = new Point(128, 60);
-            cbWindowClass.Margin = new Padding(4, 3, 4, 3);
+            cbWindowClass.Location = new Point(183, 90);
+            cbWindowClass.Margin = new Padding(6, 5, 6, 5);
             cbWindowClass.Name = "cbWindowClass";
-            cbWindowClass.Size = new Size(15, 14);
+            cbWindowClass.Size = new Size(22, 21);
             cbWindowClass.TabIndex = 47;
             cbWindowClass.UseVisualStyleBackColor = true;
             cbWindowClass.CheckedChanged += cbWindowClass_CheckedChanged;
@@ -649,20 +669,20 @@
             // cbAlwaysMove
             // 
             cbAlwaysMove.AutoSize = true;
-            cbAlwaysMove.Location = new Point(330, 461);
-            cbAlwaysMove.Margin = new Padding(4, 3, 4, 3);
+            cbAlwaysMove.Location = new Point(471, 740);
+            cbAlwaysMove.Margin = new Padding(6, 5, 6, 5);
             cbAlwaysMove.Name = "cbAlwaysMove";
-            cbAlwaysMove.Size = new Size(96, 19);
+            cbAlwaysMove.Size = new Size(167, 29);
             cbAlwaysMove.TabIndex = 44;
-            cbAlwaysMove.Text = "Always move";
+            cbAlwaysMove.Text = "Always Movable";
             cbAlwaysMove.UseVisualStyleBackColor = true;
             // 
             // butResetMoved
             // 
-            butResetMoved.Location = new Point(811, 516);
-            butResetMoved.Margin = new Padding(4, 3, 4, 3);
+            butResetMoved.Location = new Point(1159, 871);
+            butResetMoved.Margin = new Padding(6, 5, 6, 5);
             butResetMoved.Name = "butResetMoved";
-            butResetMoved.Size = new Size(136, 27);
+            butResetMoved.Size = new Size(194, 45);
             butResetMoved.TabIndex = 43;
             butResetMoved.Text = "Reset moved";
             butResetMoved.UseVisualStyleBackColor = true;
@@ -670,19 +690,26 @@
             // 
             // listView1
             // 
-            listView1.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4 });
-            listView1.Location = new Point(14, 14);
-            listView1.Margin = new Padding(4, 3, 4, 3);
+            listView1.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, colDisabled });
+            listView1.FullRowSelect = true;
+            listView1.Location = new Point(20, 23);
+            listView1.Margin = new Padding(6, 5, 6, 5);
             listView1.MultiSelect = false;
             listView1.Name = "listView1";
-            listView1.Size = new Size(432, 613);
+            listView1.OwnerDraw = true;
+            listView1.Size = new Size(615, 1019);
             listView1.Sorting = SortOrder.Ascending;
             listView1.TabIndex = 44;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
+            listView1.ColumnWidthChanged += listView1_ColumnWidthChanged;
+            listView1.ColumnWidthChanging += listView1_ColumnWidthChanging;
+            listView1.DrawSubItem += listView1_DrawSubItem;
             listView1.SelectedIndexChanged += listView1_SelectedIndexChanged;
             listView1.KeyDown += listView1_KeyDown;
             listView1.MouseClick += listView1_MouseClick;
+            listView1.MouseDown += listView1_MouseDown;
+            listView1.Resize += listView1_Resize;
             // 
             // columnHeader1
             // 
@@ -701,13 +728,17 @@
             // 
             columnHeader4.Text = "Primary";
             // 
+            // colDisabled
+            // 
+            colDisabled.Text = "Disabled";
+            // 
             // cbShowAllWindows
             // 
             cbShowAllWindows.AutoSize = true;
-            cbShowAllWindows.Location = new Point(14, 641);
-            cbShowAllWindows.Margin = new Padding(4, 3, 4, 3);
+            cbShowAllWindows.Location = new Point(20, 1059);
+            cbShowAllWindows.Margin = new Padding(6, 5, 6, 5);
             cbShowAllWindows.Name = "cbShowAllWindows";
-            cbShowAllWindows.Size = new Size(153, 19);
+            cbShowAllWindows.Size = new Size(230, 29);
             cbShowAllWindows.TabIndex = 45;
             cbShowAllWindows.Text = "Show all saved windows";
             cbShowAllWindows.UseVisualStyleBackColor = true;
@@ -716,10 +747,10 @@
             // cbRunAtLogin
             // 
             cbRunAtLogin.AutoSize = true;
-            cbRunAtLogin.Location = new Point(469, 608);
-            cbRunAtLogin.Margin = new Padding(4, 3, 4, 3);
+            cbRunAtLogin.Location = new Point(670, 1054);
+            cbRunAtLogin.Margin = new Padding(6, 5, 6, 5);
             cbRunAtLogin.Name = "cbRunAtLogin";
-            cbRunAtLogin.Size = new Size(90, 19);
+            cbRunAtLogin.Size = new Size(134, 29);
             cbRunAtLogin.TabIndex = 46;
             cbRunAtLogin.Text = "Run at login";
             cbRunAtLogin.UseVisualStyleBackColor = true;
@@ -727,38 +758,65 @@
             // 
             // contextMenuStrip1
             // 
+            contextMenuStrip1.ImageScalingSize = new Size(24, 24);
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(181, 26);
+            contextMenuStrip1.Size = new Size(61, 4);
             // 
             // txtVersion
             // 
             txtVersion.BorderStyle = BorderStyle.None;
             txtVersion.ForeColor = Color.Black;
-            txtVersion.Location = new Point(346, 633);
+            txtVersion.Location = new Point(494, 1055);
+            txtVersion.Margin = new Padding(4, 5, 4, 5);
             txtVersion.Name = "txtVersion";
             txtVersion.ReadOnly = true;
-            txtVersion.Size = new Size(100, 16);
+            txtVersion.Size = new Size(143, 24);
             txtVersion.TabIndex = 47;
             txtVersion.TextAlign = HorizontalAlignment.Right;
             // 
             // cbIsPaused
             // 
             cbIsPaused.AutoSize = true;
-            cbIsPaused.Location = new Point(594, 608);
+            cbIsPaused.Location = new Point(849, 1054);
+            cbIsPaused.Margin = new Padding(4, 5, 4, 5);
             cbIsPaused.Name = "cbIsPaused";
-            cbIsPaused.Size = new Size(57, 19);
+            cbIsPaused.Size = new Size(83, 29);
             cbIsPaused.TabIndex = 48;
             cbIsPaused.Text = "Pause";
             cbIsPaused.UseVisualStyleBackColor = true;
             cbIsPaused.CheckedChanged += cbIsPaused_CheckedChanged;
             // 
+            // chkResetOnMinimize
+            // 
+            chkResetOnMinimize.AutoSize = true;
+            chkResetOnMinimize.Location = new Point(685, 899);
+            chkResetOnMinimize.Margin = new Padding(6, 5, 6, 5);
+            chkResetOnMinimize.Name = "chkResetOnMinimize";
+            chkResetOnMinimize.Size = new Size(452, 29);
+            chkResetOnMinimize.TabIndex = 49;
+            chkResetOnMinimize.Text = "Reset 'Movable' if app is minimized or closed to tray";
+            chkResetOnMinimize.UseVisualStyleBackColor = true;
+            chkResetOnMinimize.CheckedChanged += chkResetOnMinimize_CheckedChanged;
+            // 
+            // btnResetColumns
+            // 
+            btnResetColumns.Location = new Point(254, 1050);
+            btnResetColumns.Name = "btnResetColumns";
+            btnResetColumns.Size = new Size(138, 45);
+            btnResetColumns.TabIndex = 50;
+            btnResetColumns.Text = "Reset Columns";
+            btnResetColumns.UseVisualStyleBackColor = true;
+            btnResetColumns.Click += btnResetColumns_Click;
+            // 
             // frmMain
             // 
             AcceptButton = butOK;
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
-            ClientSize = new Size(962, 674);
+            ClientSize = new Size(1374, 1168);
+            Controls.Add(btnResetColumns);
+            Controls.Add(chkResetOnMinimize);
             Controls.Add(cbIsPaused);
             Controls.Add(txtVersion);
             Controls.Add(cbRunAtLogin);
@@ -775,13 +833,15 @@
             Controls.Add(butOK);
             FormBorderStyle = FormBorderStyle.Fixed3D;
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(4, 3, 4, 3);
+            Margin = new Padding(6, 5, 6, 5);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "frmMain";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "WinSize4";
             FormClosing += frmMain_FormClosing;
             Load += Form1_Load;
+            Shown += frmMain_Shown;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
@@ -858,6 +918,10 @@
         public NotifyIcon notifyIcon1;
         private ContextMenuStrip contextMenuStrip1;
         private CheckBox cbIsPaused;
+        private CheckBox chkResetOnMinimize;
+        private Button btnResetColumns;
+        private CheckBox chkDisabled;
+        private ColumnHeader colDisabled;
     }
 }
 

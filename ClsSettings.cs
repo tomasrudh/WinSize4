@@ -14,11 +14,14 @@ namespace WinSize4
         public bool showAllWindows = true;
         public bool resetIfNewScreen = false;
         public bool runAtLogin = false;
-        private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+        //private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+        private string _path = Path.GetDirectoryName(Application.ExecutablePath);
         private string _fileNameWindows = "Settings.json";
         public bool Debug = false;
         public int Interval = 500;
         public bool isPaused = false;
+        public bool ResetOnMinimize = false;
+        public Dictionary<string, int> ListViewColumnWidths { get; set; }
 
         //**********************************************
         /// <summary> Saves data to disk </summary>
@@ -35,6 +38,8 @@ namespace WinSize4
             saveList.Debug = ClsDebug.Debug;
             saveList.Interval = this.Interval;
             saveList.isPaused = this.isPaused;
+            saveList.ResetOnMinimize = this.ResetOnMinimize;
+            saveList.ListViewColumnWidths = this.ListViewColumnWidths;
 
             var options = new JsonSerializerOptions()
             {
@@ -74,6 +79,8 @@ namespace WinSize4
                     if (saveList.Interval > 0)
                         this.Interval = saveList.Interval;
                     this.isPaused = saveList.isPaused;
+                    this.ResetOnMinimize = saveList.ResetOnMinimize;
+                    this.ListViewColumnWidths = saveList.ListViewColumnWidths;
                 }
             }
             catch (Exception e)
@@ -133,5 +140,9 @@ namespace WinSize4
         { set; get; }
         public bool isPaused
         { set; get; }
+        public bool ResetOnMinimize
+        { get; set; }
+        public Dictionary<string, int> ListViewColumnWidths
+        { get; set; }
     }
 }

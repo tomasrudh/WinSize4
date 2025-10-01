@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Globalization;
+using System.IO;
 using System.Windows.Forms;
+using System.Globalization;
 
 namespace WinSize4
 {
@@ -11,7 +12,8 @@ namespace WinSize4
 
         public static void ClearLog()
         {
-            string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            string _path = Path.GetDirectoryName(Application.ExecutablePath);
             Directory.CreateDirectory(_path);
             string _FileName = "Debug.txt";
             if (File.Exists(Path.Combine(_path, _FileName)))
@@ -29,7 +31,8 @@ namespace WinSize4
 
         public static void LogText()
         {
-            string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            string _path = Path.GetDirectoryName(Application.ExecutablePath);
             string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
             Directory.CreateDirectory(_path);
             string _FileName = "Debug.txt";
@@ -46,7 +49,8 @@ namespace WinSize4
         public static void LogNow(string Text)
         {
             string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            string _path = Path.GetDirectoryName(Application.ExecutablePath);
             Directory.CreateDirectory(_path);
             string _FileName = "Debug.txt";
             if (Debug)

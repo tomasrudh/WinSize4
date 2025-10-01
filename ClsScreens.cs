@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 using System.Text.Json;
 using Windows.ApplicationModel.Activation;
 
@@ -9,7 +10,8 @@ namespace WinSize4
     public class ClsScreens
     {
         public List<ClsScreenList> ScreenList = new List<ClsScreenList>();
-        private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+        //private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+        private string _path = Path.GetDirectoryName(Application.ExecutablePath);
         private string _fileNameWindows = "Screens.json";
 
         //**********************************************

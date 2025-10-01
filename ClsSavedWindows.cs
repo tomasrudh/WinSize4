@@ -14,7 +14,8 @@ using static System.Net.Mime.MediaTypeNames;
 public class ClsSavedWindows
 {
     public List<ClsWindowProps> Props = new List<ClsWindowProps>();
-    private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+    //private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+    private string _path = Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath);
     private int _nextTag = 0;
 
     //**********************************************
