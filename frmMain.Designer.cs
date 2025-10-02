@@ -60,7 +60,6 @@
             tbName = new TextBox();
             cbResetIfNewScreen = new CheckBox();
             groupBox2 = new GroupBox();
-            chkDisabled = new CheckBox();
             cbCanResize = new CheckBox();
             cbIgnoreChildWindows = new CheckBox();
             butDuplicate = new Button();
@@ -88,6 +87,7 @@
             columnHeader2 = new ColumnHeader();
             columnHeader3 = new ColumnHeader();
             columnHeader4 = new ColumnHeader();
+            stateImageList = new ImageList(components);
             cbShowAllWindows = new CheckBox();
             cbRunAtLogin = new CheckBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
@@ -127,7 +127,7 @@
             // 
             // butOK
             // 
-            butOK.Location = new Point(771, 1096);
+            butOK.Location = new Point(774, 1050);
             butOK.Margin = new Padding(6, 5, 6, 5);
             butOK.Name = "butOK";
             butOK.Size = new Size(177, 45);
@@ -138,7 +138,7 @@
             // 
             // butApply
             // 
-            butApply.Location = new Point(1093, 1096);
+            butApply.Location = new Point(1092, 1050);
             butApply.Margin = new Padding(6, 5, 6, 5);
             butApply.Name = "butApply";
             butApply.Size = new Size(126, 45);
@@ -149,7 +149,7 @@
             // 
             // butExit
             // 
-            butExit.Location = new Point(1227, 1096);
+            butExit.Location = new Point(1226, 1050);
             butExit.Margin = new Padding(6, 5, 6, 5);
             butExit.Name = "butExit";
             butExit.Size = new Size(126, 45);
@@ -287,7 +287,7 @@
             // butCancel
             // 
             butCancel.DialogResult = DialogResult.Cancel;
-            butCancel.Location = new Point(957, 1096);
+            butCancel.Location = new Point(958, 1050);
             butCancel.Margin = new Padding(6, 5, 6, 5);
             butCancel.Name = "butCancel";
             butCancel.Size = new Size(126, 45);
@@ -298,7 +298,7 @@
             // 
             // butEditScreens
             // 
-            butEditScreens.Location = new Point(1159, 979);
+            butEditScreens.Location = new Point(1159, 933);
             butEditScreens.Margin = new Padding(6, 5, 6, 5);
             butEditScreens.Name = "butEditScreens";
             butEditScreens.Size = new Size(194, 45);
@@ -323,7 +323,7 @@
             groupBox1.Controls.Add(tbHotKeyCharacter);
             groupBox1.Controls.Add(cbHotKeyRight);
             groupBox1.Controls.Add(cbHotKeyLeft);
-            groupBox1.Location = new Point(661, 943);
+            groupBox1.Location = new Point(661, 897);
             groupBox1.Margin = new Padding(6, 5, 6, 5);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(6, 5, 6, 5);
@@ -395,7 +395,7 @@
             // cbResetIfNewScreen
             // 
             cbResetIfNewScreen.AutoSize = true;
-            cbResetIfNewScreen.Location = new Point(685, 860);
+            cbResetIfNewScreen.Location = new Point(685, 820);
             cbResetIfNewScreen.Margin = new Padding(6, 5, 6, 5);
             cbResetIfNewScreen.Name = "cbResetIfNewScreen";
             cbResetIfNewScreen.Size = new Size(360, 29);
@@ -407,7 +407,6 @@
             // 
             // groupBox2
             // 
-            groupBox2.Controls.Add(chkDisabled);
             groupBox2.Controls.Add(cbCanResize);
             groupBox2.Controls.Add(cbIgnoreChildWindows);
             groupBox2.Controls.Add(butDuplicate);
@@ -439,21 +438,10 @@
             groupBox2.Margin = new Padding(6, 5, 6, 5);
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(6, 5, 6, 5);
-            groupBox2.Size = new Size(691, 820);
+            groupBox2.Size = new Size(691, 784);
             groupBox2.TabIndex = 42;
             groupBox2.TabStop = false;
             groupBox2.Text = "Selected window";
-            // 
-            // chkDisabled
-            // 
-            chkDisabled.AutoSize = true;
-            chkDisabled.Location = new Point(24, 779);
-            chkDisabled.Margin = new Padding(6, 5, 6, 5);
-            chkDisabled.Name = "chkDisabled";
-            chkDisabled.Size = new Size(107, 29);
-            chkDisabled.TabIndex = 60;
-            chkDisabled.Text = "Disabled";
-            chkDisabled.UseVisualStyleBackColor = true;
             // 
             // cbCanResize
             // 
@@ -678,7 +666,7 @@
             // 
             // butResetMoved
             // 
-            butResetMoved.Location = new Point(1159, 871);
+            butResetMoved.Location = new Point(1159, 831);
             butResetMoved.Margin = new Padding(6, 5, 6, 5);
             butResetMoved.Name = "butResetMoved";
             butResetMoved.Size = new Size(194, 45);
@@ -697,6 +685,7 @@
             listView1.Name = "listView1";
             listView1.Size = new Size(615, 1019);
             listView1.Sorting = SortOrder.Ascending;
+            listView1.StateImageList = stateImageList;
             listView1.TabIndex = 44;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
@@ -724,6 +713,14 @@
             // 
             columnHeader4.Text = "Primary";
             // 
+            // stateImageList
+            // 
+            stateImageList.ColorDepth = ColorDepth.Depth16Bit;
+            stateImageList.ImageStream = (ImageListStreamer)resources.GetObject("stateImageList.ImageStream");
+            stateImageList.TransparentColor = Color.Transparent;
+            stateImageList.Images.SetKeyName(0, "green-checkmark-icon-16.png");
+            stateImageList.Images.SetKeyName(1, "red-x-icon-16.png");
+            // 
             // cbShowAllWindows
             // 
             cbShowAllWindows.AutoSize = true;
@@ -739,7 +736,7 @@
             // cbRunAtLogin
             // 
             cbRunAtLogin.AutoSize = true;
-            cbRunAtLogin.Location = new Point(670, 1054);
+            cbRunAtLogin.Location = new Point(670, 1008);
             cbRunAtLogin.Margin = new Padding(6, 5, 6, 5);
             cbRunAtLogin.Name = "cbRunAtLogin";
             cbRunAtLogin.Size = new Size(134, 29);
@@ -769,7 +766,7 @@
             // cbIsPaused
             // 
             cbIsPaused.AutoSize = true;
-            cbIsPaused.Location = new Point(849, 1054);
+            cbIsPaused.Location = new Point(849, 1008);
             cbIsPaused.Margin = new Padding(4, 5, 4, 5);
             cbIsPaused.Name = "cbIsPaused";
             cbIsPaused.Size = new Size(83, 29);
@@ -781,7 +778,7 @@
             // chkResetOnMinimize
             // 
             chkResetOnMinimize.AutoSize = true;
-            chkResetOnMinimize.Location = new Point(685, 899);
+            chkResetOnMinimize.Location = new Point(685, 859);
             chkResetOnMinimize.Margin = new Padding(6, 5, 6, 5);
             chkResetOnMinimize.Name = "chkResetOnMinimize";
             chkResetOnMinimize.Size = new Size(452, 29);
@@ -792,7 +789,7 @@
             // 
             // btnResetColumns
             // 
-            btnResetColumns.Location = new Point(254, 1050);
+            btnResetColumns.Location = new Point(259, 1050);
             btnResetColumns.Name = "btnResetColumns";
             btnResetColumns.Size = new Size(138, 45);
             btnResetColumns.TabIndex = 50;
@@ -806,7 +803,7 @@
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
-            ClientSize = new Size(1374, 1168);
+            ClientSize = new Size(1374, 1118);
             Controls.Add(btnResetColumns);
             Controls.Add(chkResetOnMinimize);
             Controls.Add(cbIsPaused);
@@ -912,7 +909,7 @@
         private CheckBox cbIsPaused;
         private CheckBox chkResetOnMinimize;
         private Button btnResetColumns;
-        private CheckBox chkDisabled;
+        private ImageList stateImageList;
     }
 }
 

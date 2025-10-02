@@ -64,6 +64,8 @@
         { set; get; } = false;
         public bool CanResize
         { set; get; } = true;
+        public bool Disabled
+        { get; set; } = false;
 
         public const int Full = 0;
         public const int Contains = 1;

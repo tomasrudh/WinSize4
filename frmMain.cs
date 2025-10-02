@@ -448,8 +448,8 @@ namespace WinSize4
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
                         currentWindowProps.Title != _lastTitle &&
-                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true))
-                        //&& !_savedWindows.Props[targetSavedWindowsIndex].Disabled)
+                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true)
+                        && !_savedWindows.Props[targetSavedWindowsIndex].Disabled)
                     {
                         int targetScreenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[targetSavedWindowsIndex]);
                         //bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
@@ -533,11 +533,13 @@ namespace WinSize4
                     var prop = _savedWindows.Props[i];
                     string Primary = prop.Primary ? "Yes" : "No";
 
-                    row = new string[] { prop.Name, prop.MonitorBoundsWidth.ToString(), prop.MonitorBoundsHeight.ToString(), Primary, "" };
+                    row = new string[] { prop.Name, prop.MonitorBoundsWidth.ToString(), prop.MonitorBoundsHeight.ToString(), Primary };
                     var listViewItem = new ListViewItem(row);
                     listViewItem.Tag = prop.Tag;
 
-                    // --- DEFINITIVE CORRECTED LOGIC STRUCTURE ---
+                    // Set the checkbox state from the saved property
+                    listViewItem.StateImageIndex = prop.Disabled ? 1 : 0;
+
                     int screenIndex = _screens.GetScreenIndexForWindow(prop);
                     if (screenIndex == -1)
                     {
@@ -1299,6 +1301,35 @@ namespace WinSize4
                 if (focusedItem != null && focusedItem.Bounds.Contains(e.Location))
                 {
                     contextMenuStrip1.Show(Cursor.Position);
+                }
+            }
+
+            // Use HitTest to find the item that was clicked on.
+            var lvi = listView1.HitTest(e.Location).Item;
+
+            // If the user clicked on a valid item...
+            if (lvi != null)
+            {
+                try
+                {
+                    int tag = (int)lvi.Tag;
+                    int savedIndex = _savedWindows.GetWindowIndexByTag(tag);
+
+                    if (savedIndex != -1)
+                    {
+                        // 1. Toggle the "Disabled" property in the data source
+                        _savedWindows.Props[savedIndex].Disabled = !_savedWindows.Props[savedIndex].Disabled;
+
+                        // 2. Update the image to reflect the new state
+                        //    Index 1 is the red cross, Index 0 is the green tick.
+                        lvi.StateImageIndex = _savedWindows.Props[savedIndex].Disabled ? 1 : 0;
+
+                        _dirty = true; // Mark that there are unsaved changes
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "Error in listView1_MouseClick");
                 }
             }
         }

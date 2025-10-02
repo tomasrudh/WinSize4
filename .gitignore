@@ -363,6 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Temp folders
-\d+\/
-/\d+/nppBackup
-/1
+[0-9]/
+Temp/
