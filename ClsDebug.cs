@@ -9,16 +9,42 @@ namespace WinSize4
     {
         public static bool Debug = false;
         public static string _text = "";
+        private static string _activePath; // Will be set by frmMain at startup
+
+        //**********************************************
+        /// <summary>
+        /// Sets the active directory for logging. Must be called once at startup.
+        /// </summary>
+        //**********************************************
+        public static void Initialize(string path)
+        {
+            _activePath = path;
+        }
+
+        //**********************************************
+        /// <summary>
+        /// Checks if the path has been set. Prevents crashes.
+        /// </summary>
+        //**********************************************
+        private static bool IsPathInitialized()
+        {
+            if (string.IsNullOrEmpty(_activePath))
+            {
+                // Fallback to prevent crashes if Initialize() is not called.
+                // In a properly functioning app, this should not be hit.
+                _activePath = Path.GetDirectoryName(Application.ExecutablePath);
+            }
+            return true;
+        }
 
         public static void ClearLog()
         {
-            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-            string _path = Path.GetDirectoryName(Application.ExecutablePath);
-            Directory.CreateDirectory(_path);
-            string _FileName = "Debug.txt";
-            if (File.Exists(Path.Combine(_path, _FileName)))
+            if (!IsPathInitialized()) return;
+            Directory.CreateDirectory(_activePath);
+            string fullPath = Path.Combine(_activePath, "Debug.txt");
+            if (File.Exists(fullPath))
             {
-                File.Delete(Path.Combine(_path, _FileName));
+                File.Delete(fullPath);
             }
             _text = "";
         }
@@ -31,34 +57,26 @@ namespace WinSize4
 
         public static void LogText()
         {
-            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-            string _path = Path.GetDirectoryName(Application.ExecutablePath);
+            if (!Debug || !IsPathInitialized()) return;
             string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            Directory.CreateDirectory(_path);
-            string _FileName = "Debug.txt";
-            if (Debug)
+            Directory.CreateDirectory(_activePath);
+            string fullPath = Path.Combine(_activePath, "Debug.txt");
+            using (var writer = new StreamWriter(fullPath, true))
             {
-                using (var writer = new StreamWriter(_path + "\\" + _FileName, true))
-                {
-                    writer.WriteLine(dt + " " + _text);
-                }
+                writer.WriteLine(dt + " " + _text);
             }
             _text = "";
         }
 
         public static void LogNow(string Text)
         {
+            if (!Debug || !IsPathInitialized()) return;
             string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-            string _path = Path.GetDirectoryName(Application.ExecutablePath);
-            Directory.CreateDirectory(_path);
-            string _FileName = "Debug.txt";
-            if (Debug)
+            Directory.CreateDirectory(_activePath);
+            string fullPath = Path.Combine(_activePath, "Debug.txt");
+            using (var writer = new StreamWriter(fullPath, true))
             {
-                using (var writer = new StreamWriter(_path + "\\" + _FileName, true))
-                {
-                    writer.WriteLine(dt + " " + Text);
-                }
+                writer.WriteLine(dt + " " + Text);
             }
         }
 

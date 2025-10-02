@@ -95,6 +95,7 @@
             cbIsPaused = new CheckBox();
             chkResetOnMinimize = new CheckBox();
             btnResetColumns = new Button();
+            chkPortableMode = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox4.SuspendLayout();
@@ -755,13 +756,12 @@
             // 
             txtVersion.BorderStyle = BorderStyle.None;
             txtVersion.ForeColor = Color.Black;
-            txtVersion.Location = new Point(494, 1055);
+            txtVersion.Location = new Point(670, 1060);
             txtVersion.Margin = new Padding(4, 5, 4, 5);
             txtVersion.Name = "txtVersion";
             txtVersion.ReadOnly = true;
-            txtVersion.Size = new Size(143, 24);
+            txtVersion.Size = new Size(66, 24);
             txtVersion.TabIndex = 47;
-            txtVersion.TextAlign = HorizontalAlignment.Right;
             // 
             // cbIsPaused
             // 
@@ -797,6 +797,17 @@
             btnResetColumns.UseVisualStyleBackColor = true;
             btnResetColumns.Click += btnResetColumns_Click;
             // 
+            // chkPortableMode
+            // 
+            chkPortableMode.AutoSize = true;
+            chkPortableMode.Location = new Point(484, 1059);
+            chkPortableMode.Margin = new Padding(4, 5, 4, 5);
+            chkPortableMode.Name = "chkPortableMode";
+            chkPortableMode.Size = new Size(155, 29);
+            chkPortableMode.TabIndex = 51;
+            chkPortableMode.Text = "Portable mode";
+            chkPortableMode.UseVisualStyleBackColor = true;
+            // 
             // frmMain
             // 
             AcceptButton = butOK;
@@ -804,6 +815,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
             ClientSize = new Size(1374, 1118);
+            Controls.Add(chkPortableMode);
             Controls.Add(btnResetColumns);
             Controls.Add(chkResetOnMinimize);
             Controls.Add(cbIsPaused);
@@ -910,6 +922,7 @@
         private CheckBox chkResetOnMinimize;
         private Button btnResetColumns;
         private ImageList stateImageList;
+        private CheckBox chkPortableMode;
     }
 }
 

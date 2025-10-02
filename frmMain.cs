@@ -68,12 +68,14 @@ namespace WinSize4
         {
             InitializeComponent();
             _winEventDelegate = new WinEventDelegate(WinEventProc);
-            _settings.LoadFromFile();
-            _savedWindows.Load();
-            _screens.Load();
+            _settings.InitializeAndLoad();
+            string path = _settings.ActivePath; // Get the determined path
+            ClsDebug.Initialize(path); // Initialize the logger first
+            _savedWindows.Load(path);
+            _screens.Load(path);
             _screens.AddNewScreens();
             _screens.SetPresent();
-            _screens.Save();
+            _screens.Save(path);
             //_savedWindows.Order();
             PopulateListBox();
             //txtVersion.Text = GetType().Assembly.GetName().Version.ToString();
@@ -107,6 +109,7 @@ namespace WinSize4
             cbShowAllWindows.Checked = _settings.showAllWindows;
             cbResetIfNewScreen.Checked = _settings.resetIfNewScreen;
             cbRunAtLogin.Checked = _settings.runAtLogin;
+            chkPortableMode.Checked = _settings.PortableMode;
             cbIsPaused.Checked = _settings.isPaused;
             chkResetOnMinimize.Checked = _settings.ResetOnMinimize;
 
@@ -121,21 +124,19 @@ namespace WinSize4
             try
             {
                 int totalColumns = listView1.Columns.Count;
-                if (totalColumns > 4) // Ensure there are enough columns
+                if (totalColumns > 3) // Ensure there are enough columns
                 {
                     // Find the columns by their text or name
                     ColumnHeader nameCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Name");
                     ColumnHeader widthCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Width");
                     ColumnHeader heightCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Height");
                     ColumnHeader primaryCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Primary");
-                    ColumnHeader disabledCol = listView1.Columns["colDisabled"]; // Find by name
 
                     // The final visual order
                     if (nameCol != null) nameCol.DisplayIndex = 0;
                     if (widthCol != null) widthCol.DisplayIndex = 1;
                     if (heightCol != null) heightCol.DisplayIndex = 2;
                     if (primaryCol != null) primaryCol.DisplayIndex = 3;
-                    if (disabledCol != null) disabledCol.DisplayIndex = 4;
                 }
             }
             catch (Exception ex)
@@ -465,7 +466,7 @@ namespace WinSize4
                             ClsDebug.AddText($"[Compare window's parameters]: currentWindowProps.Left:'{currentWindowProps.Width}' - targetProps.Left:'{targetProps.Width}'");
                             ClsDebug.AddText($"[Compare window's parameters]: currentWindowProps.Left:'{currentWindowProps.Height}' - targetProps.Left:'{targetProps.Height}'");
                             // Compare the current window's geometry with the saved target geometry.
-                            // We also ensure that the 'AlwaysMove' flag will bypass this check.
+                            // Also ensure that the 'AlwaysMove' flag will bypass this check.
                             if (currentWindowProps.Left == targetProps.Left &&
                                 currentWindowProps.Top == targetProps.Top &&
                                 currentWindowProps.Width == targetProps.Width &&
@@ -847,7 +848,7 @@ namespace WinSize4
             if (result == DialogResult.OK)
             {
                 _screens.ScreenList = Scr.ReturnScreenList;
-                _screens.Save();
+                _screens.Save(_settings.ActivePath);
             }
         }
 
@@ -860,8 +861,18 @@ namespace WinSize4
             {
                 SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
             }
-            _savedWindows.Save();
+
+            bool newMode = chkPortableMode.Checked;
+            if (newMode != _settings.PortableMode)
+            {
+                _settings.PortableMode = newMode;
+                _settings.UpdateSettingsLocation();
+            }
+
+            _savedWindows.Save(_settings.ActivePath);
+            _screens.Save(_settings.ActivePath);
             _settings.SaveToFile();
+
             RegisterListener();
             _currentWindows.ResetMoved();
             this.Hide();
@@ -889,18 +900,25 @@ namespace WinSize4
         //**********************************************
         private void butApply_Click(object sender, EventArgs e)
         {
-            if (listView1.Items.Count > 0)
+            if (listView1.Items.Count > 0 && listView1.SelectedItems.Count > 0)
             {
-                if (listView1.SelectedItems.Count > 0)
-                {
-                    SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
-                }
-                PopulateListBox();
+                SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
             }
-            _savedWindows.Save();
+
+            bool newMode = chkPortableMode.Checked;
+            if (newMode != _settings.PortableMode)
+            {
+                _settings.PortableMode = newMode;
+                _settings.UpdateSettingsLocation();
+            }
+
+            _savedWindows.Save(_settings.ActivePath);
+            _screens.Save(_settings.ActivePath);
             _settings.SaveToFile();
+
             RegisterListener();
             _currentWindows.ResetMoved();
+            PopulateListBox(); // Repopulate to reflect any changes
         }
 
         //**********************************************
@@ -1120,7 +1138,17 @@ namespace WinSize4
         private void butShow_Click(object sender, EventArgs e)
         {
             allowVisible = true;
-            Show();
+
+            // 1. Ensure the form is visible and not minimized.
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+
+            // 2. The "TopMost" trick to steal focus.
+            this.TopMost = true;  // Temporarily bring it to the very top.
+            this.TopMost = false; // Immediately set it back to a normal window.
+
+            // 3. Explicitly activate and focus the form.
+            this.Activate();
         }
 
         private void butRemove_Click(object sender, EventArgs e)
@@ -1203,9 +1231,16 @@ namespace WinSize4
 
         private void notifyIcon1_DoubleClick(object sender, EventArgs e)
         {
-            Show();
+            // 1. Ensure the form is visible and not minimized.
+            this.Show();
             this.WindowState = FormWindowState.Normal;
-            //notifyIcon1.Visible = false;
+
+            // 2. The "TopMost" trick to steal focus.
+            this.TopMost = true;  // Temporarily bring it to the very top.
+            this.TopMost = false; // Immediately set it back to a normal window.
+
+            // 3. Explicitly activate and focus the form.
+            this.Activate();
         }
 
         private void cbShowAllWindows_CheckedChanged(object sender, EventArgs e)
@@ -1261,8 +1296,11 @@ namespace WinSize4
             }
             else
             {
-                // Stop listening when the application is closing to release system resources
+                // Stop listening when the application is closing
                 UnhookWinEvent(_hhook);
+
+                _savedWindows.Save(_settings.ActivePath);
+                _screens.Save(_settings.ActivePath);
                 _settings.SaveToFile();
             }
         }
@@ -1304,12 +1342,15 @@ namespace WinSize4
                 }
             }
 
-            // Use HitTest to find the item that was clicked on.
-            var lvi = listView1.HitTest(e.Location).Item;
+            // Get detailed hit-test information about where the user clicked.
+            var hitTestInfo = listView1.HitTest(e.X, e.Y);
 
-            // If the user clicked on a valid item...
-            if (lvi != null)
+            // Check if the click was specifically on the state image area.
+            if (hitTestInfo.Location == ListViewHitTestLocations.StateImage)
             {
+                // Knowing for sure the user clicked the icon, so we can get the item.
+                var lvi = hitTestInfo.Item;
+
                 try
                 {
                     int tag = (int)lvi.Tag;
@@ -1317,14 +1358,13 @@ namespace WinSize4
 
                     if (savedIndex != -1)
                     {
-                        // 1. Toggle the "Disabled" property in the data source
+                        // 1. Toggle the "Disabled" property in the data source.
                         _savedWindows.Props[savedIndex].Disabled = !_savedWindows.Props[savedIndex].Disabled;
 
-                        // 2. Update the image to reflect the new state
-                        //    Index 1 is the red cross, Index 0 is the green tick.
+                        // 2. Update the image to reflect the new state.
                         lvi.StateImageIndex = _savedWindows.Props[savedIndex].Disabled ? 1 : 0;
 
-                        _dirty = true; // Mark that there are unsaved changes
+                        _dirty = true; // Mark that there are unsaved changes.
                     }
                 }
                 catch (Exception ex)

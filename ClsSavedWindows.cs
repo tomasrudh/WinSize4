@@ -14,8 +14,6 @@ using static System.Net.Mime.MediaTypeNames;
 public class ClsSavedWindows
 {
     public List<ClsWindowProps> Props = new List<ClsWindowProps>();
-    //private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-    private string _path = Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath);
     private int _nextTag = 0;
 
     //**********************************************
@@ -285,86 +283,81 @@ public class ClsSavedWindows
     }
 
     //**********************************************
-    /// <summary> Saves data to disk </summary>
+    /// <summary> Saves data to the specified path </summary>
     //**********************************************
-    public void Save()
+    public void Save(string activePath)
     {
-        string fileNameWindows;
-        var options = new JsonSerializerOptions()
-        {
-            WriteIndented = true
-        };
-        List<List<ClsWindowProps>> saveProps = new List<List<ClsWindowProps>>();
-        bool found;
-        int j;
+        var options = new JsonSerializerOptions() { WriteIndented = true };
+        var saveProps = new List<List<ClsWindowProps>>();
 
-        // Remove all saved files
-        var fileEntries = Directory.GetFiles(_path, "*.json");
+        Directory.CreateDirectory(activePath);
+
+        // Clean out only old window position files from the target directory
+        var fileEntries = Directory.GetFiles(activePath, "*.json");
         foreach (string fileName in fileEntries)
         {
-            if (Regex.Match(fileName, @"\d{3,5}x\d{3,5}P?\.json").Success)
+            if (Regex.IsMatch(Path.GetFileName(fileName), @"^\d{3,5}x\d{3,5}P?\.json$"))
             {
                 File.Delete(fileName);
             }
         }
 
-        for (int i = 0; i < this.Props.Count; i++)
+        // Group window properties by screen configuration
+        foreach (var prop in this.Props)
         {
-            found = false;
-            for (j = 0; j < saveProps.Count; j++)
+            var group = saveProps.FirstOrDefault(g =>
+                g[0].MonitorBoundsWidth == prop.MonitorBoundsWidth &&
+                g[0].MonitorBoundsHeight == prop.MonitorBoundsHeight &&
+                g[0].Primary == prop.Primary);
+
+            if (group != null)
             {
-                if (this.Props[i].MonitorBoundsWidth == saveProps[j][0].MonitorBoundsWidth &&
-                    this.Props[i].MonitorBoundsHeight == saveProps[j][0].MonitorBoundsHeight &&
-                    this.Props[i].Primary == saveProps[j][0].Primary)
-                {
-                    saveProps[j].Add(this.Props[i]);
-                    found = true;
-                    break;
-                }
+                group.Add(prop);
             }
-            if (!found)
+            else
             {
-                saveProps.Add(new List<ClsWindowProps>());
-                saveProps[saveProps.Count - 1].Add(this.Props[i]);
+                saveProps.Add(new List<ClsWindowProps> { prop });
             }
         }
-        Directory.CreateDirectory(_path);
-        for (int i = 0; i < saveProps.Count; i++)
+
+        // Write the new files
+        foreach (var group in saveProps)
         {
-            fileNameWindows = saveProps[i][0].MonitorBoundsWidth + "x" + saveProps[i][0].MonitorBoundsHeight;
-            fileNameWindows += (saveProps[i][0].Primary) ? "P.json" : ".json";
-            using (var writer = new StreamWriter(_path + "\\" + fileNameWindows))
+            string fileNameWindows = $"{group[0].MonitorBoundsWidth}x{group[0].MonitorBoundsHeight}";
+            fileNameWindows += group[0].Primary ? "P.json" : ".json";
+            string fullPath = Path.Combine(activePath, fileNameWindows);
+            using (var writer = new StreamWriter(fullPath))
             {
-                String json = JsonSerializer.Serialize(saveProps[i], options);
+                String json = JsonSerializer.Serialize(group, options);
                 writer.Write(json);
             }
         }
     }
 
     //**********************************************
-    /// <summary> Loads data from disk </summary>
+    /// <summary> Loads data from the specified path </summary>
     //**********************************************
-    public void Load()
+    public void Load(string activePath)
     {
         this.Props.Clear();
-        int Id = 0;
-        System.IO.Directory.CreateDirectory(_path);
-        List<ClsWindowProps> loadProps = new List<ClsWindowProps>();
-        var fileEntries = Directory.GetFiles(_path, "*.json");
+        _nextTag = 0; // Reset tag counter on load
+
+        Directory.CreateDirectory(activePath);
+        var fileEntries = Directory.GetFiles(activePath, "*.json");
+
         foreach (string fileName in fileEntries)
         {
-            if (Regex.Match(fileName, @"\d{3,5}x\d{3,5}P?\.json").Success)
+            if (Regex.IsMatch(Path.GetFileName(fileName), @"^\d{3,5}x\d{3,5}P?\.json$"))
             {
                 using (StreamReader r = new StreamReader(fileName))
                 {
                     String json = r.ReadToEnd();
                     if (json.Length > 0)
                     {
-                        loadProps = JsonSerializer.Deserialize<List<ClsWindowProps>>(json);
-                        foreach (var item in loadProps)
+                        var loadedProps = JsonSerializer.Deserialize<List<ClsWindowProps>>(json);
+                        foreach (var item in loadedProps)
                         {
-                            item.Tag = Id;
-                            Id++;
+                            // AddWindow will assign the correct, unique tag
                             AddWindow(item);
                         }
                     }
