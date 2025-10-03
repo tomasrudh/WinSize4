@@ -660,9 +660,9 @@
             cbAlwaysMove.Location = new Point(471, 740);
             cbAlwaysMove.Margin = new Padding(6, 5, 6, 5);
             cbAlwaysMove.Name = "cbAlwaysMove";
-            cbAlwaysMove.Size = new Size(167, 29);
+            cbAlwaysMove.Size = new Size(143, 29);
             cbAlwaysMove.TabIndex = 44;
-            cbAlwaysMove.Text = "Always Movable";
+            cbAlwaysMove.Text = "Always Move";
             cbAlwaysMove.UseVisualStyleBackColor = true;
             // 
             // butResetMoved

@@ -681,6 +681,10 @@ namespace WinSize4
                                 radioStartsWithExclude.Checked = true;
                                 break;
                         }
+
+                        // This forces the WindowClass textbox to update its enabled state 
+                        // based on the initial value of the checkbox.
+                        cbWindowClass_CheckedChanged(this, EventArgs.Empty);
                     }
                     else
                     // No item selected
@@ -731,6 +735,7 @@ namespace WinSize4
             {
                 _savedWindows.Props[index].Name = tbName.Text;
                 _savedWindows.Props[index].ConsiderWindowClass = cbWindowClass.Checked;
+                _savedWindows.Props[index].WindowClass = tbWindowClass.Text;
                 _savedWindows.Props[index].TitleInclude = tbTitleInclude.Text;
                 _savedWindows.Props[index].TitleExclude = tbTitleExclude.Text;
                 _savedWindows.Props[index].SearchTitleInclude = cbSearchTitleInclude.Checked;
@@ -742,20 +747,24 @@ namespace WinSize4
                 _savedWindows.Props[index].CanResize = cbCanResize.Checked;
                 if (!cbCustomWidth.Checked)
                 {
-                    _savedWindows.Props[index].Width = int.Parse(tbWidth.Text);
-                    _savedWindows.Props[index].Left = int.Parse(tbLeft.Text);
+                    int.TryParse(tbWidth.Text, out int width);
+                    _savedWindows.Props[index].Width = width;
+
+                    int.TryParse(tbLeft.Text, out int left);
+                    _savedWindows.Props[index].Left = left;
                 }
                 if (!cbCustomHeight.Checked)
                 {
-                    _savedWindows.Props[index].Height = int.Parse(tbHeight.Text);
-                    _savedWindows.Props[index].Top = int.Parse(tbTop.Text);
+                    int.TryParse(tbHeight.Text, out int height);
+                    _savedWindows.Props[index].Height = height;
+
+                    int.TryParse(tbTop.Text, out int top);
+                    _savedWindows.Props[index].Top = top;
                 }
                 _savedWindows.Props[index].MaxWidth = cbCustomWidth.Checked;
                 _savedWindows.Props[index].MaxHeight = cbCustomHeight.Checked;
                 _savedWindows.Props[index].FullScreen = cbFullScreen.Checked;
-                _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
-                _savedWindows.Props[index].AlwaysMove = cbAlwaysMove.Checked;
-                _savedWindows.Props[index].CanResize = cbCanResize.Checked;
+
                 if (radioFullInclude.Checked)
                     _savedWindows.Props[index].SearchTypeInclude = ClsWindowProps.Full;
                 if (radioContainsInclude.Checked)
