@@ -1,15 +1,49 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Toolkit.Uwp.Notifications;
+using Microsoft.Win32;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Toolkit.Uwp.Notifications;
-using Microsoft.Win32;
 using Windows.UI.Notifications;
+using System.Collections.Concurrent;
 
 namespace WinSize4
 {
     public partial class frmMain : Form
     {
+        // Delegate for the hook callback function
+        private delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
+        // Import the SetWinEventHook and UnhookWinEvent functions from user32.dll
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+        // Constants for the events we want to listen for.
+        private const uint EVENT_SYSTEM_MINIMIZESTART = 0x0016;
+        private const uint EVENT_OBJECT_HIDE = 0x8003;
+        private const uint WINEVENT_OUTOFCONTEXT = 0;
+
+        // A handle to our event hook
+        private IntPtr _hhook;
+
+        // Keep a reference to the delegate, otherwise it can be garbage collected
+        private WinEventDelegate _winEventDelegate;
+
+        private ConcurrentBag<IntPtr> _minimizedWindowHandles = new ConcurrentBag<IntPtr>();  // Store handles of minimized windows
+
         public ClsCurrentWindows _currentWindows = new ClsCurrentWindows();  // Windows open right now
         public ClsSavedWindows _savedWindows = new ClsSavedWindows();        // Windows saved on file
         public ClsScreens _screens = new ClsScreens();
@@ -24,6 +58,8 @@ namespace WinSize4
         bool isPausedUpdating;
         string _lastTitle = "";
         private bool allowVisible;     // ContextMenu's Show command used
+        private bool _userHasTakenControlOfColumns = false; // This flag is true ONLY when the user has manually resized a column.
+        private bool _isUserDraggingColumn = false; // A temporary flag to confirm a user drag is in progress.
 
         //**********************************************
         // Form initialize
@@ -31,12 +67,15 @@ namespace WinSize4
         public frmMain()
         {
             InitializeComponent();
-            _settings.LoadFromFile();
-            _savedWindows.Load();
-            _screens.Load();
+            _winEventDelegate = new WinEventDelegate(WinEventProc);
+            _settings.InitializeAndLoad();
+            string path = _settings.ActivePath; // Get the determined path
+            ClsDebug.Initialize(path); // Initialize the logger first
+            _savedWindows.Load(path);
+            _screens.Load(path);
             _screens.AddNewScreens();
             _screens.SetPresent();
-            _screens.Save();
+            _screens.Save(path);
             //_savedWindows.Order();
             PopulateListBox();
             //txtVersion.Text = GetType().Assembly.GetName().Version.ToString();
@@ -70,7 +109,54 @@ namespace WinSize4
             cbShowAllWindows.Checked = _settings.showAllWindows;
             cbResetIfNewScreen.Checked = _settings.resetIfNewScreen;
             cbRunAtLogin.Checked = _settings.runAtLogin;
+            chkPortableMode.Checked = _settings.PortableMode;
             cbIsPaused.Checked = _settings.isPaused;
+            chkResetOnMinimize.Checked = _settings.ResetOnMinimize;
+
+            #region ListView Column Initialization
+            // Unsubscribe from events to prevent them from firing during the setup.
+            this.listView1.Resize -= new System.EventHandler(this.listView1_Resize);
+            this.listView1.ColumnWidthChanging -= new System.Windows.Forms.ColumnWidthChangingEventHandler(this.listView1_ColumnWidthChanging);
+            this.listView1.ColumnWidthChanged -= new System.Windows.Forms.ColumnWidthChangedEventHandler(this.listView1_ColumnWidthChanged);
+
+            // ClsDebug.LogNow("[ColumnLayout] Starting ListView initialization in constructor.");
+            // Part 1: Always set the desired visual order first. This is static.
+            try
+            {
+                int totalColumns = listView1.Columns.Count;
+                if (totalColumns > 3) // Ensure there are enough columns
+                {
+                    // Find the columns by their text or name
+                    ColumnHeader nameCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Name");
+                    ColumnHeader widthCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Width");
+                    ColumnHeader heightCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Height");
+                    ColumnHeader primaryCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Primary");
+
+                    // The final visual order
+                    if (nameCol != null) nameCol.DisplayIndex = 0;
+                    if (widthCol != null) widthCol.DisplayIndex = 1;
+                    if (heightCol != null) heightCol.DisplayIndex = 2;
+                    if (primaryCol != null) primaryCol.DisplayIndex = 3;
+                }
+            }
+            catch (Exception ex)
+            {
+                // ClsDebug.LogNow($"[ColumnLayout] ERROR setting display order: {ex.Message}");
+            }
+            // Part 2: Load settings OR apply the default auto-expanding layout.
+            if (_settings.ListViewColumnWidths != null && _settings.ListViewColumnWidths.Count > 0)
+            {
+                _userHasTakenControlOfColumns = true; // Since using the user's saved layout, mark that they are in control.
+            }
+            else
+            {
+                // ClsDebug.LogNow("[ColumnLayout] No saved widths found. The app will be in control.");
+                // --- SCENARIO B: FIRST RUN (NO SAVED SETTINGS) ---
+                _userHasTakenControlOfColumns = false; // The application is in control of the layout.
+            }
+            // ClsDebug.LogNow($"[ColumnLayout] Constructor finished. _userHasTakenControlOfColumns = {_userHasTakenControlOfColumns}");
+            #endregion ListView Column Initialization
+
             ClsDebug.AddText("\nStarting");
             ClsDebug.LogText();
             timer1.Interval = _settings.Interval;
@@ -79,11 +165,159 @@ namespace WinSize4
         }
 
         //**********************************************
+        // Set default widths for fixed-size columns
+        //**********************************************
+        private void SetDefaultFixedColumnWidths()
+        {
+            // The FIX for the oversized with Autosize columns: Calculate widths manually.
+            foreach (ColumnHeader col in listView1.Columns)
+            {
+                if (col.Text == "Width")
+                {
+                    col.Width = TextRenderer.MeasureText("Width", listView1.Font).Width + 5; // Text width + padding
+                    // ClsDebug.LogNow($"[ColumnLayout] -> Set '{col.Text}' column width to {col.Width}px.");
+                }
+                else if (col.Text == "Height")
+                {
+                    col.Width = TextRenderer.MeasureText("Height", listView1.Font).Width + 5;
+                    // ClsDebug.LogNow($"[ColumnLayout] -> Set '{col.Text}' column width to {col.Width}px.");
+                }
+                else if (col.Text == "Primary")
+                {
+                    col.Width = TextRenderer.MeasureText("Primary", listView1.Font).Width;
+                    // ClsDebug.LogNow($"[ColumnLayout] -> Set '{col.Text}' column width to {col.Width}px.");
+                }
+            }
+        }
+
+        //**********************************************
+        // Auto-resize the 'Name' column to fill remaining space
+        //**********************************************
+        private void ResizeNameColumn()
+        {
+            // ClsDebug.LogNow("[ColumnLayout] ResizeNameColumn() called.");
+
+            ColumnHeader nameCol = listView1.Columns.Cast<ColumnHeader>().FirstOrDefault(c => c.Text == "Name");
+            if (nameCol == null)
+            {
+                // ClsDebug.LogNow("[ColumnLayout] -> Aborting resize because 'Name' column was not found.");
+                return;
+            }
+
+            int allOtherColumnsWidth = 0;
+            foreach (ColumnHeader col in listView1.Columns)
+            {
+                if (col != nameCol) allOtherColumnsWidth += col.Width;
+            }
+            // ClsDebug.LogNow($"[ColumnLayout] -> Calculated allOtherColumnsWidth: {allOtherColumnsWidth}px.");
+
+            int availableWidth = listView1.ClientSize.Width - allOtherColumnsWidth;
+            // ClsDebug.LogNow($"[ColumnLayout] -> listView.ClientSize.Width is {listView1.ClientSize.Width}px. Calculated availableWidth for 'Name': {availableWidth}px.");
+
+            // Apply the new width, ensuring it's a reasonable value.
+            if (availableWidth > 50) // e.g., don't shrink it to nothing
+            {
+                nameCol.Width = availableWidth;
+                // ClsDebug.LogNow($"[ColumnLayout] -> SUCCESS: Set 'Name' column width to {availableWidth}px.");
+            }
+            // else
+            // {
+            //     ClsDebug.LogNow($"[ColumnLayout] -> SKIPPED setting width because availableWidth ({availableWidth}px) was too small.");
+            // }
+        }
+        //**********************************************
+        // Saving column layout if user has changed it
+        //**********************************************
+        private void SaveColumnLayout()
+        {
+            // ClsDebug.LogNow("[ColumnLayout] SaveColumnLayout() called.");
+            // 
+            // ClsDebug.LogNow("[ColumnLayout] -> Proceeding to save layout to settings object.");
+            if (_settings.ListViewColumnWidths == null)
+            {
+                _settings.ListViewColumnWidths = new Dictionary<string, int>();
+            }
+            else
+            {
+                _settings.ListViewColumnWidths.Clear();
+            }
+
+            foreach (ColumnHeader col in listView1.Columns)
+            {
+                _settings.ListViewColumnWidths[col.Text] = col.Width;
+                // ClsDebug.LogNow($"[ColumnLayout] -> Saving '{col.Text}' with width {col.Width}px.");
+            }
+
+            _settings.SaveToFile();
+        }
+
+        //**********************************************
         // Form load
         //**********************************************
         private void Form1_Load(object sender, EventArgs e)
         {
             notifyIcon1.Visible = true;
+            // Start listening for window minimize and hide events across all applications
+            _hhook = SetWinEventHook(EVENT_SYSTEM_MINIMIZESTART, EVENT_OBJECT_HIDE, IntPtr.Zero, _winEventDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
+        }
+
+        //**********************************************
+        // Detecting when a managed window is minimized or sent to the tray and reseting its Moved flag
+        //**********************************************
+        private void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+        {
+            // 1. Check if a checkbox 'chkResetOnMinimize' is ticked and only care about events for top-level windows.
+            if (!chkResetOnMinimize.Checked || idObject != 0 || idChild != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                // Determine if this is a window that should be managed.
+                GetWindowThreadProcessId(hwnd, out uint processId);
+                if (processId == 0) return;
+
+                var process = System.Diagnostics.Process.GetProcessById((int)processId);
+                if (process == null) return;
+
+                // --- Start Debug Logging ---
+                // ClsDebug.LogNow($"[DEBUG] WinEventProc: Event fired for process '{process.ProcessName}' (hwnd: {hwnd}).");
+
+                // Gather more info for the search, just like in the timer.
+                StringBuilder titleBuilder = new StringBuilder(256);
+                GetWindowText(hwnd, titleBuilder, titleBuilder.Capacity);
+
+                StringBuilder classBuilder = new StringBuilder(256);
+                GetClassName(hwnd, classBuilder, classBuilder.Capacity);
+
+                // Create a temporary object just for searching saved rules.
+                var searchProps = new ClsWindowProps
+                {
+                    Exe = process.ProcessName,
+                    Title = titleBuilder.ToString(),
+                    WindowClass = classBuilder.ToString()
+                };
+
+                // ClsDebug.LogNow($"[DEBUG] WinEventProc: Searching for Title='{searchProps.Title}', Exe='{searchProps.Exe}'");
+
+                // If a rule exists for this application, to reset its Moved flag.
+                int savedIndex = _savedWindows.GetIndexAllScreens(searchProps, _screens.ScreenList, 0);
+
+                // ClsDebug.LogNow($"[DEBUG] WinEventProc: GetIndexAllScreens returned index: {savedIndex}.");
+
+                // If a configuration exists for this window, add its handle to our list for processing later.
+                if (savedIndex > -1)
+                {
+                    _minimizedWindowHandles.Add(hwnd);
+                    //    ClsDebug.LogNow($"[DEBUG] WinEventProc: SUCCESS! Added hwnd {hwnd} to the list.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Ignore errors, e.g., if the process closes.
+                // ClsDebug.LogNow($"[DEBUG] WinEventProc: An error occurred: {ex.Message}");
+            }
         }
 
         //**********************************************
@@ -139,7 +373,8 @@ namespace WinSize4
                     {
                         _toastClicked = true;
                         allowVisible = true;
-                        this.Invoke((MethodInvoker)delegate {
+                        this.Invoke((MethodInvoker)delegate
+                        {
                             Show();
                         });
                         //ToastArguments args = ToastArguments.Parse(toastArgs.Argument);
@@ -173,6 +408,18 @@ namespace WinSize4
                 ClsDebug.AddText("Timer1_Tick starting");
                 timer1.Stop();
                 long hWnd = (long)GetForegroundWindow();
+
+                // Process any windows that were minimized since the last tick.
+                while (_minimizedWindowHandles.TryTake(out IntPtr hwndToReset))
+                {
+                    // Find the window with this handle
+                    var windowToUpdate = _currentWindows.Windows.FirstOrDefault(w => w.hWnd == (long)hwndToReset);
+                    if (windowToUpdate != null)
+                    {
+                        windowToUpdate.Moved = false;
+                    }
+                }
+
                 if (_settings.isPaused)
                 {
                     ClsDebug.AddText("WinSize4 is paused");
@@ -202,7 +449,8 @@ namespace WinSize4
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
                         currentWindowProps.Title != _lastTitle &&
-                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true))
+                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true)
+                        && !_savedWindows.Props[targetSavedWindowsIndex].Disabled)
                     {
                         int targetScreenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[targetSavedWindowsIndex]);
                         //bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
@@ -210,19 +458,43 @@ namespace WinSize4
                         // Only continue if window is not a child window to a current window, or child windows should be considered
                         if (!_savedWindows.Props[targetSavedWindowsIndex].IgnoreChildWindows || !targetWindowHasParent)
                         {
-                            ClsDebug.AddText("Moving window: " + Text);
+                            // For clarity, get the target properties from your saved settings.
+                            var targetProps = _savedWindows.Props[targetSavedWindowsIndex];
+                            //ClsDebug.LogNow($"[ColumnLayout] -> Set '{col.Text}' column width to {col.Width}px.");
+                            ClsDebug.AddText($"[Compare window's parameters]: currentWindowProps.Left:'{currentWindowProps.Left}' - targetProps.Left:'{targetProps.Left}'");
+                            ClsDebug.AddText($"[Compare window's parameters]: currentWindowProps.Left:'{currentWindowProps.Top}' - targetProps.Left:'{targetProps.Top}'");
+                            ClsDebug.AddText($"[Compare window's parameters]: currentWindowProps.Left:'{currentWindowProps.Width}' - targetProps.Left:'{targetProps.Width}'");
+                            ClsDebug.AddText($"[Compare window's parameters]: currentWindowProps.Left:'{currentWindowProps.Height}' - targetProps.Left:'{targetProps.Height}'");
+                            // Compare the current window's geometry with the saved target geometry.
+                            // Also ensure that the 'AlwaysMove' flag will bypass this check.
+                            if (currentWindowProps.Left == targetProps.Left &&
+                                currentWindowProps.Top == targetProps.Top &&
+                                currentWindowProps.Width == targetProps.Width &&
+                                currentWindowProps.Height == targetProps.Height &&
+                                !targetProps.AlwaysMove)
+                            {
+                                // The window is already in the correct position.
+                                // Skip the move, but MUST set the 'Moved' flag to true
+                                // to prevent the app from checking it again on the next tick.
+                                ClsDebug.LogNow("Window is already in the correct position. Skipping move.");
+                                _currentWindows.Windows[currentWindowsIndex].Moved = true;
+                            }
+                            else
+                            {
+                                // The window is not in the correct position, so proceed with the move.
+                                ClsDebug.AddText("Moving window: " + Text);
 
-                            _currentWindows.MoveCurrentWindow(currentWindowsIndex,
-                                _savedWindows.Props[targetSavedWindowsIndex],
-                                targetSavedWindowsIndex,
-                                _screens.ScreenList[targetScreenIndex],
-                                new ClsScreenList());
-                            _currentWindows.UpdateWindowProperties(currentWindowsIndex);
-                            _currentWindows.Windows[currentWindowsIndex].Moved = true;
-                            //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
-                            ClsDebug.AddText($"Execution Time: {watch.ElapsedMilliseconds} ms");
-                            watch.Stop();
-                            ClsDebug.LogText();
+                                _currentWindows.MoveCurrentWindow(currentWindowsIndex,
+                                    targetProps,
+                                    targetSavedWindowsIndex,
+                                    _screens.ScreenList[targetScreenIndex],
+                                    new ClsScreenList());
+                                _currentWindows.UpdateWindowProperties(currentWindowsIndex);
+                                _currentWindows.Windows[currentWindowsIndex].Moved = true;
+                                ClsDebug.AddText($"Execution Time: {watch.ElapsedMilliseconds} ms");
+                                watch.Stop();
+                                ClsDebug.LogText();
+                            }
                         }
                     }
                     _lastTitle = currentWindowProps.Title;
@@ -245,34 +517,45 @@ namespace WinSize4
         //**********************************************
         private void PopulateListBox()
         {
+            ClsDebug.LogNow("[DrawDebug] PopulateListBox: Starting.");
             try
             {
-                int lastSelected = 0;
+                int lastSelectedTag = -1;
                 if (listView1.SelectedItems.Count > 0)
                 {
-                    lastSelected = listView1.SelectedItems[0].Index;
+                    lastSelectedTag = listView1.SelectedItems[0].Tag as int? ?? -1;
                 }
+
                 listView1.Items.Clear();
+                ClsDebug.LogNow("[DrawDebug] PopulateListBox: Items cleared.");
                 string[] row;
                 for (int i = 0; i < _savedWindows.Props.Count; i++)
                 {
-                    string Primary = _savedWindows.Props[i].Primary ? "Yes" : "No";
-                    row = new string[] { _savedWindows.Props[i].Name, _savedWindows.Props[i].MonitorBoundsWidth.ToString(), _savedWindows.Props[i].MonitorBoundsHeight.ToString(), Primary };
+                    var prop = _savedWindows.Props[i];
+                    string Primary = prop.Primary ? "Yes" : "No";
+
+                    row = new string[] { prop.Name, prop.MonitorBoundsWidth.ToString(), prop.MonitorBoundsHeight.ToString(), Primary };
                     var listViewItem = new ListViewItem(row);
-                    listViewItem.Tag = _savedWindows.Props[i].Tag;
-                    if (_screens.GetScreenIndexForWindow(_savedWindows.Props[i]) == -1)
+                    listViewItem.Tag = prop.Tag;
+
+                    // Set the checkbox state from the saved property
+                    listViewItem.StateImageIndex = prop.Disabled ? 1 : 0;
+
+                    int screenIndex = _screens.GetScreenIndexForWindow(prop);
+                    if (screenIndex == -1)
                     {
                         listView1.Items.Add(listViewItem);
                     }
-                    if (!_screens.ScreenList[_screens.GetScreenIndexForWindow(_savedWindows.Props[i])].Present)
+                    else if (!_screens.ScreenList[screenIndex].Present)
                     {
                         if (_settings.showAllWindows)
                         {
                             listViewItem.ForeColor = Color.Silver;
-                            listViewItem.SubItems[1].ForeColor = Color.Silver;
-                            listViewItem.SubItems[2].ForeColor = Color.Silver;
-                            listViewItem.SubItems[3].ForeColor = Color.Silver;
                             listViewItem.UseItemStyleForSubItems = false;
+                            for (int j = 1; j < listViewItem.SubItems.Count; j++)
+                            {
+                                listViewItem.SubItems[j].ForeColor = Color.Silver;
+                            }
                             listView1.Items.Add(listViewItem);
                         }
                     }
@@ -280,20 +563,23 @@ namespace WinSize4
                     {
                         listView1.Items.Add(listViewItem);
                     }
+                }
+                ClsDebug.LogNow($"[DrawDebug] PopulateListBox: Finished. Total items in list: {listView1.Items.Count}.");
 
-                }
-                if (listView1.Items.Count > 0 && lastSelected < listView1.Items.Count)
+                if (lastSelectedTag != -1)
                 {
-                    listView1.Items[lastSelected].Selected = true;
+                    int indexToSelect = GetListViewIndexByTag(lastSelectedTag);
+                    if (indexToSelect > -1)
+                    {
+                        listView1.Items[indexToSelect].Selected = true;
+                        listView1.Items[indexToSelect].Focused = true;
+                        listView1.EnsureVisible(indexToSelect);
+                    }
                 }
-                listView1.Select();
-                notifyIcon1.BalloonTipTitle = "WinSize4";
-                notifyIcon1.BalloonTipText = _savedWindows.Props.Count.ToString() + " controlled windows";
             }
-            catch
-            (Exception ex)
+            catch (Exception ex)
             {
-                ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "");
+                ClsDebug.LogNow($"[DrawDebug] PopulateListBox: CRITICAL ERROR! {ex.Message}");
             }
         }
         //**********************************************
@@ -395,6 +681,10 @@ namespace WinSize4
                                 radioStartsWithExclude.Checked = true;
                                 break;
                         }
+
+                        // This forces the WindowClass textbox to update its enabled state 
+                        // based on the initial value of the checkbox.
+                        cbWindowClass_CheckedChanged(this, EventArgs.Empty);
                     }
                     else
                     // No item selected
@@ -445,6 +735,7 @@ namespace WinSize4
             {
                 _savedWindows.Props[index].Name = tbName.Text;
                 _savedWindows.Props[index].ConsiderWindowClass = cbWindowClass.Checked;
+                _savedWindows.Props[index].WindowClass = tbWindowClass.Text;
                 _savedWindows.Props[index].TitleInclude = tbTitleInclude.Text;
                 _savedWindows.Props[index].TitleExclude = tbTitleExclude.Text;
                 _savedWindows.Props[index].SearchTitleInclude = cbSearchTitleInclude.Checked;
@@ -456,20 +747,24 @@ namespace WinSize4
                 _savedWindows.Props[index].CanResize = cbCanResize.Checked;
                 if (!cbCustomWidth.Checked)
                 {
-                    _savedWindows.Props[index].Width = int.Parse(tbWidth.Text);
-                    _savedWindows.Props[index].Left = int.Parse(tbLeft.Text);
+                    int.TryParse(tbWidth.Text, out int width);
+                    _savedWindows.Props[index].Width = width;
+
+                    int.TryParse(tbLeft.Text, out int left);
+                    _savedWindows.Props[index].Left = left;
                 }
                 if (!cbCustomHeight.Checked)
                 {
-                    _savedWindows.Props[index].Height = int.Parse(tbHeight.Text);
-                    _savedWindows.Props[index].Top = int.Parse(tbTop.Text);
+                    int.TryParse(tbHeight.Text, out int height);
+                    _savedWindows.Props[index].Height = height;
+
+                    int.TryParse(tbTop.Text, out int top);
+                    _savedWindows.Props[index].Top = top;
                 }
                 _savedWindows.Props[index].MaxWidth = cbCustomWidth.Checked;
                 _savedWindows.Props[index].MaxHeight = cbCustomHeight.Checked;
                 _savedWindows.Props[index].FullScreen = cbFullScreen.Checked;
-                _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
-                _savedWindows.Props[index].AlwaysMove = cbAlwaysMove.Checked;
-                _savedWindows.Props[index].CanResize = cbCanResize.Checked;
+
                 if (radioFullInclude.Checked)
                     _savedWindows.Props[index].SearchTypeInclude = ClsWindowProps.Full;
                 if (radioContainsInclude.Checked)
@@ -562,7 +857,7 @@ namespace WinSize4
             if (result == DialogResult.OK)
             {
                 _screens.ScreenList = Scr.ReturnScreenList;
-                _screens.Save();
+                _screens.Save(_settings.ActivePath);
             }
         }
 
@@ -575,8 +870,18 @@ namespace WinSize4
             {
                 SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
             }
-            _savedWindows.Save();
+
+            bool newMode = chkPortableMode.Checked;
+            if (newMode != _settings.PortableMode)
+            {
+                _settings.PortableMode = newMode;
+                _settings.UpdateSettingsLocation();
+            }
+
+            _savedWindows.Save(_settings.ActivePath);
+            _screens.Save(_settings.ActivePath);
             _settings.SaveToFile();
+
             RegisterListener();
             _currentWindows.ResetMoved();
             this.Hide();
@@ -604,18 +909,25 @@ namespace WinSize4
         //**********************************************
         private void butApply_Click(object sender, EventArgs e)
         {
-            if (listView1.Items.Count > 0)
+            if (listView1.Items.Count > 0 && listView1.SelectedItems.Count > 0)
             {
-                if (listView1.SelectedItems.Count > 0)
-                {
-                    SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
-                }
-                PopulateListBox();
+                SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
             }
-            _savedWindows.Save();
+
+            bool newMode = chkPortableMode.Checked;
+            if (newMode != _settings.PortableMode)
+            {
+                _settings.PortableMode = newMode;
+                _settings.UpdateSettingsLocation();
+            }
+
+            _savedWindows.Save(_settings.ActivePath);
+            _screens.Save(_settings.ActivePath);
             _settings.SaveToFile();
+
             RegisterListener();
             _currentWindows.ResetMoved();
+            PopulateListBox(); // Repopulate to reflect any changes
         }
 
         //**********************************************
@@ -649,18 +961,18 @@ namespace WinSize4
             {
                 isPausedUpdating = true;
                 if (((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked)
-            {
-                _settings.isPaused = false;
-                ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = false;
-                cbIsPaused.Checked = false;
-            }
-            else
-            {
-                _settings.isPaused = true;
-                ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = true;
-                cbIsPaused.Checked = true;
-            }
-            _dirty = true;
+                {
+                    _settings.isPaused = false;
+                    ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = false;
+                    cbIsPaused.Checked = false;
+                }
+                else
+                {
+                    _settings.isPaused = true;
+                    ((ToolStripMenuItem)notifyIcon1.ContextMenuStrip.Items[1]).Checked = true;
+                    cbIsPaused.Checked = true;
+                }
+                _dirty = true;
                 isPausedUpdating = false;
             }
         }
@@ -835,7 +1147,17 @@ namespace WinSize4
         private void butShow_Click(object sender, EventArgs e)
         {
             allowVisible = true;
-            Show();
+
+            // 1. Ensure the form is visible and not minimized.
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+
+            // 2. The "TopMost" trick to steal focus.
+            this.TopMost = true;  // Temporarily bring it to the very top.
+            this.TopMost = false; // Immediately set it back to a normal window.
+
+            // 3. Explicitly activate and focus the form.
+            this.Activate();
         }
 
         private void butRemove_Click(object sender, EventArgs e)
@@ -918,9 +1240,16 @@ namespace WinSize4
 
         private void notifyIcon1_DoubleClick(object sender, EventArgs e)
         {
-            Show();
+            // 1. Ensure the form is visible and not minimized.
+            this.Show();
             this.WindowState = FormWindowState.Normal;
-            //notifyIcon1.Visible = false;
+
+            // 2. The "TopMost" trick to steal focus.
+            this.TopMost = true;  // Temporarily bring it to the very top.
+            this.TopMost = false; // Immediately set it back to a normal window.
+
+            // 3. Explicitly activate and focus the form.
+            this.Activate();
         }
 
         private void cbShowAllWindows_CheckedChanged(object sender, EventArgs e)
@@ -974,6 +1303,15 @@ namespace WinSize4
                 e.Cancel = true;
                 this.Hide();
             }
+            else
+            {
+                // Stop listening when the application is closing
+                UnhookWinEvent(_hhook);
+
+                _savedWindows.Save(_settings.ActivePath);
+                _screens.Save(_settings.ActivePath);
+                _settings.SaveToFile();
+            }
         }
 
         private void cbRunAtLogin_CheckedChanged(object sender, EventArgs e)
@@ -1012,6 +1350,37 @@ namespace WinSize4
                     contextMenuStrip1.Show(Cursor.Position);
                 }
             }
+
+            // Get detailed hit-test information about where the user clicked.
+            var hitTestInfo = listView1.HitTest(e.X, e.Y);
+
+            // Check if the click was specifically on the state image area.
+            if (hitTestInfo.Location == ListViewHitTestLocations.StateImage)
+            {
+                // Knowing for sure the user clicked the icon, so we can get the item.
+                var lvi = hitTestInfo.Item;
+
+                try
+                {
+                    int tag = (int)lvi.Tag;
+                    int savedIndex = _savedWindows.GetWindowIndexByTag(tag);
+
+                    if (savedIndex != -1)
+                    {
+                        // 1. Toggle the "Disabled" property in the data source.
+                        _savedWindows.Props[savedIndex].Disabled = !_savedWindows.Props[savedIndex].Disabled;
+
+                        // 2. Update the image to reflect the new state.
+                        lvi.StateImageIndex = _savedWindows.Props[savedIndex].Disabled ? 1 : 0;
+
+                        _dirty = true; // Mark that there are unsaved changes.
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "Error in listView1_MouseClick");
+                }
+            }
         }
 
         //**********************************************
@@ -1042,9 +1411,97 @@ namespace WinSize4
         [DllImport("user32.dll")]
         static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
-        private void groupBox2_Enter(object sender, EventArgs e)
+        // This event fires after any resize, but it has a way to know if it was a user.
+        private void listView1_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
         {
+            // Only act if the "authenticator" flag is true. This ignores all programmatic changes.
+            if (_isUserDraggingColumn)
+            {
+                _userHasTakenControlOfColumns = true; // 1. The user is now permanently in control.
+                SaveColumnLayout();  // 2. Immediately save the new layout.
+                _isUserDraggingColumn = false; // 3. Reset the authenticator flag, ready for the next drag.
+            }
+        }
 
+        private void chkResetOnMinimize_CheckedChanged(object sender, EventArgs e)
+        {
+            _settings.ResetOnMinimize = chkResetOnMinimize.Checked;
+        }
+
+        private void listView1_Resize(object sender, EventArgs e)
+        {
+            // Only auto-resize if the user has not yet taken control.
+            if (!_userHasTakenControlOfColumns)
+            {
+                // Schedule the expansion of the 'Name' column to happen AFTER the resize is finished.
+                // This gives the control time to settle and avoids the rendering bug.
+                ResizeNameColumn();
+            }
+        }
+
+        // This is the "Authenticator" event. It ONLY fires when a user is dragging.
+        private void listView1_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
+        {
+            // This event ONLY fires from a user drag. Set the flag to true.
+            _isUserDraggingColumn = true;
+        }
+
+        private void btnResetColumns_Click(object sender, EventArgs e)
+        {
+            // 1. Unsubscribe from events to make the operation atomic ---
+            // This prevents the ListView from entering a chaotic state while we work.
+            this.listView1.Resize -= new System.EventHandler(this.listView1_Resize);
+            this.listView1.ColumnWidthChanged -= new System.Windows.Forms.ColumnWidthChangedEventHandler(this.listView1_ColumnWidthChanged);
+
+            // 2. Reset the saved settings data.
+            // Check if the settings exist, clear the dictionary, and immediately save the file.
+            // This ensures that on the next launch, the app will perform the "first run" setup.
+            if (_settings.ListViewColumnWidths != null && _settings.ListViewColumnWidths.Count > 0)
+            {
+                _settings.ListViewColumnWidths.Clear();
+                _settings.SaveToFile();
+            }
+
+            // 3. Immediately re-apply the initial "first run" visual layout.
+            // This gives the user instant visual feedback.
+            SetDefaultFixedColumnWidths();
+            ResizeNameColumn();
+
+            // 4. Reset the application's state flag.
+            // This is crucial to re-enable the auto-resizing of the 'Name' column.
+            _userHasTakenControlOfColumns = false;
+
+            // Re-subscribe here, after everything is stable.
+            this.listView1.Resize += new System.EventHandler(this.listView1_Resize);
+            this.listView1.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.listView1_ColumnWidthChanged);
+        }
+
+        private void frmMain_Shown(object sender, EventArgs e)
+        {
+            // This event fires after the form is fully stable and visible.
+
+            // --- Perform the full, stable layout process ---
+
+            if (_userHasTakenControlOfColumns)
+            {
+                // If the user has saved preferences, apply them now.
+                foreach (ColumnHeader col in listView1.Columns)
+                {
+                    if (_settings.ListViewColumnWidths.ContainsKey(col.Text))
+                        col.Width = _settings.ListViewColumnWidths[col.Text];
+                }
+            }
+            else
+            {
+                // If this is a first run, apply the default layout.
+                SetDefaultFixedColumnWidths();
+                ResizeNameColumn();
+            }
+
+            // --- Finally, re-subscribe to events now that the initial layout is complete ---
+            this.listView1.Resize += new System.EventHandler(this.listView1_Resize);
+            this.listView1.ColumnWidthChanging += new System.Windows.Forms.ColumnWidthChangingEventHandler(this.listView1_ColumnWidthChanging);
+            this.listView1.ColumnWidthChanged += new System.Windows.Forms.ColumnWidthChangedEventHandler(this.listView1_ColumnWidthChanged);
         }
     }
 }
