@@ -365,3 +365,5 @@ FodyWeavers.xsd
 # Temp folders
 [0-9]/
 Temp/
+/WinSize4.csproj
+/ClsSavedWindows.cs
