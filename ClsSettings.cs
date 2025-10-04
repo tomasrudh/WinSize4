@@ -86,6 +86,37 @@ namespace WinSize4
 
         //**********************************************
         /// <summary>
+        /// Safely checks for write permissions in a directory by attempting to create and delete a temporary file.
+        /// </summary>
+        /// <param name="path">The directory to check.</param>
+        /// <returns>True if write access is granted, otherwise false.</returns>
+        //**********************************************
+        private bool HasWriteAccess(string path)
+        {
+            try
+            {
+                // Ensure the directory exists for an accurate test.
+                Directory.CreateDirectory(path);
+                // Use a unique file name to avoid collisions.
+                string tempFile = Path.Combine(path, Guid.NewGuid().ToString() + ".tmp");
+                File.WriteAllText(tempFile, "test");
+                File.Delete(tempFile);
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // This is the specific exception we are looking for.
+                return false;
+            }
+            catch (Exception)
+            {
+                // Any other exception also indicates a problem.
+                return false;
+            }
+        }
+
+        //**********************************************
+        /// <summary>
         /// Implements the "Portable is King" startup logic.
         /// Determines the correct path at startup and loads settings.
         /// This replaces the direct call to LoadFromFile() in frmMain.
@@ -95,9 +126,9 @@ namespace WinSize4
         {
             string portableConfigFile = Path.Combine(_portablePath, _fileNameSettings);
             string localConfigFile = Path.Combine(_localDataPath, _fileNameSettings);
-            string sourceOfTruthPath;
+            string sourceOfTruthPath = null;
 
-            // 1. ESTABLISH THE SOURCE OF TRUTH (The Golden Rule)
+            // 1. Establish the source of truth (Portable is King).
             if (File.Exists(portableConfigFile))
             {
                 sourceOfTruthPath = _portablePath;
@@ -106,25 +137,87 @@ namespace WinSize4
             {
                 sourceOfTruthPath = _localDataPath;
             }
+
+            // 2. Load settings from the source if found, otherwise use defaults.
+            if (sourceOfTruthPath != null)
+            {
+                LoadSettingsFromSpecificPath(sourceOfTruthPath);
+            }
             else
             {
-                // First-ever run. Default to portable mode.
-                _activePath = _portablePath;
-                this.PortableMode = true;
-                return; // Nothing to load or copy.
+                // This is a first-ever run. 'this.PortableMode' is already 'true' by default.
             }
 
-            // 2. LOAD the settings from the determined source of truth.
-            LoadSettingsFromSpecificPath(sourceOfTruthPath); // This populates 'this.PortableMode' correctly.
+            // 3. Determine the INTENDED path based on settings.
+            string intendedPath = this.PortableMode ? _portablePath : _localDataPath;
 
-            // 3. DETERMINE the correct active path based on the loaded setting.
-            _activePath = this.PortableMode ? _portablePath : _localDataPath;
-
-            // 4. SYNCHRONIZE: Copy all config files from the source of truth to the target active path if they are different.
-            if (sourceOfTruthPath != _activePath)
+            // 4. Test the INTENDED path for write access.
+            if (HasWriteAccess(intendedPath))
             {
-                CopyAllFiles(sourceOfTruthPath, _activePath);
+                // --- SUCCESS: The intended path is writable. ---
+                _activePath = intendedPath;
+                // Synchronize files if the source is different from our active directory.
+                if (sourceOfTruthPath != null && sourceOfTruthPath != _activePath)
+                {
+                    CopyAllFiles(sourceOfTruthPath, _activePath);
+                }
             }
+            else
+            {
+                // --- FAILURE: The intended path is NOT writable. We must try to fall back. ---
+                if (this.PortableMode) // The failed path was the portable directory.
+                {
+                    // Inform the user we are attempting to fall back to LocalAppData.
+                    MessageBox.Show(
+                        "WinSize4 does not have permission to save settings in its current location.\n\n" +
+                        "It will now attempt to use the safe 'LocalAppData' folder as a fallback.",
+                        "Permission Issue Detected",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+
+                    // Now, test the fallback path.
+                    if (HasWriteAccess(_localDataPath))
+                    {
+                        // --- FALLBACK SUCCESS ---
+                        this.PortableMode = false; // Force non-portable mode.
+                        _activePath = _localDataPath;
+                        // Copy the original files to the new, writable location.
+                        if (sourceOfTruthPath != null)
+                        {
+                            CopyAllFiles(sourceOfTruthPath, _activePath);
+                        }
+                    }
+                    else
+                    {
+                        // --- FATAL ERROR: Both paths are unwritable. ---
+                        ShowFatalErrorAndExit();
+                    }
+                }
+                else // The failed path was LocalAppData itself.
+                {
+                    // --- FATAL ERROR: The primary non-portable path is unwritable. There is no other fallback. ---
+                    ShowFatalErrorAndExit();
+                }
+            }
+        }
+
+        //**********************************************
+        /// <summary>
+        /// Displays a final error message and terminates the application when no writable path is found.
+        /// </summary>
+        //**********************************************
+        private void ShowFatalErrorAndExit()
+        {
+            MessageBox.Show(
+                "WinSize4 could not find a writable location to save its settings.\n\n" +
+                "It has checked both its application folder and the LocalAppData folder and was denied access to both.\n\n" +
+                "Please check your system's permissions or run the application from a user-writable folder.\nThe application will now close.",
+                "Fatal Error: Cannot Save Settings",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            Environment.Exit(1); // Force the application to terminate.
         }
 
         //**********************************************
