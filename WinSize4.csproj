@@ -12,12 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Temp\**" />
-    <EmbeddedResource Remove="Temp\**" />
-    <None Remove="Temp\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="001-direction.ico" />
   </ItemGroup>
 
