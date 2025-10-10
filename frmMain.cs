@@ -470,13 +470,14 @@ namespace WinSize4
                             if (currentWindowProps.Left == targetProps.Left &&
                                 currentWindowProps.Top == targetProps.Top &&
                                 currentWindowProps.Width == targetProps.Width &&
-                                currentWindowProps.Height == targetProps.Height &&
-                                !targetProps.AlwaysMove)
+                                currentWindowProps.Height == targetProps.Height)
+                                //!targetProps.AlwaysMove)
                             {
                                 // The window is already in the correct position.
                                 // Skip the move, but MUST set the 'Moved' flag to true
                                 // to prevent the app from checking it again on the next tick.
-                                ClsDebug.LogNow("Window is already in the correct position. Skipping move.");
+                                ClsDebug.AddText("Window is already in the correct position. Skipping move.");
+                                ClsDebug.LogText();
                                 _currentWindows.Windows[currentWindowsIndex].Moved = true;
                             }
                             else
