@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 using System.Text.Json;
 using Windows.ApplicationModel.Activation;
 
@@ -9,8 +10,7 @@ namespace WinSize4
     public class ClsScreens
     {
         public List<ClsScreenList> ScreenList = new List<ClsScreenList>();
-        private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-        private string _fileNameWindows = "Screens.json";
+        private readonly string _fileNameScreens = "Screens.json";
 
         //**********************************************
         /// <summary> Get all current screens </summary>
@@ -154,16 +154,14 @@ namespace WinSize4
         }
 
         //**********************************************
-        /// <summary> Saves data to disk </summary>
+        /// <summary> Saves data to the specified path </summary>
         //**********************************************
-        public void Save()
+        public void Save(string activePath)
         {
-            var options = new JsonSerializerOptions()
-            {
-                WriteIndented = true
-            };
-            Directory.CreateDirectory(_path);
-            using (var writer = new StreamWriter(_path + "\\" + _fileNameWindows))
+            var options = new JsonSerializerOptions() { WriteIndented = true };
+            Directory.CreateDirectory(activePath);
+            string fullPath = Path.Combine(activePath, _fileNameScreens);
+            using (var writer = new StreamWriter(fullPath))
             {
                 String _json = JsonSerializer.Serialize(this.ScreenList, options);
                 writer.Write(_json);
@@ -171,16 +169,20 @@ namespace WinSize4
         }
 
         //**********************************************
-        /// <summary> Loads data from disk </summary>
+        /// <summary> Loads data from the specified path </summary>
         //**********************************************
-        public void Load()
+        public void Load(string activePath)
         {
-            if (File.Exists(_path + "\\" + _fileNameWindows))
+            string fullPath = Path.Combine(activePath, _fileNameScreens);
+            if (File.Exists(fullPath))
             {
-                using (StreamReader r = new StreamReader(_path + "\\" + _fileNameWindows))
+                using (StreamReader r = new StreamReader(fullPath))
                 {
                     String json = r.ReadToEnd();
-                    this.ScreenList = JsonSerializer.Deserialize<List<ClsScreenList>>(json);
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        this.ScreenList = JsonSerializer.Deserialize<List<ClsScreenList>>(json);
+                    }
                 }
             }
         }
