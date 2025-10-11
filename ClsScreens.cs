@@ -72,7 +72,7 @@ namespace WinSize4
                     break;
                 }
             }
-            ClsDebug.AddText("GetScreenIndexForWindow: " + index);
+            //ClsDebug.AddText("GetScreenIndexForWindow: " + index);
             return index;
         }
 

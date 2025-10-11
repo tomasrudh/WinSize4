@@ -406,8 +406,8 @@ namespace WinSize4
                 allowVisible = true;
                 var watch = new System.Diagnostics.Stopwatch();
                 watch.Start();
-                ClsDebug._text = "";
-                ClsDebug.AddText("Timer1_Tick starting");
+                //ClsDebug._text = "";
+                //ClsDebug.AddText("Timer1_Tick starting");
                 timer1.Stop();
                 long hWnd = (long)GetForegroundWindow();
 
@@ -447,6 +447,19 @@ namespace WinSize4
                     if (currentWindowProps.Title != _lastTitle)
                     {
                         ClsDebug.LogNow("Checking window: " + Text);
+
+                        // After logging the window we are checking, we immediately check if we found a rule for it.
+                        if (targetSavedWindowsIndex > -1)
+                        {
+                            // If a rule was found, log its name.
+                            var matchingRule = _savedWindows.Props[targetSavedWindowsIndex];
+                            ClsDebug.LogNow($"-> Matching rule found: '{matchingRule.Name}'");
+                        }
+                        else
+                        {
+                            // If no rule was found, log that too. This is very useful for debugging.
+                            ClsDebug.LogNow("-> No matching rule found.");
+                        }
                     }
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
@@ -520,7 +533,7 @@ namespace WinSize4
         //**********************************************
         private void PopulateListBox(string filter = "")
         {
-            ClsDebug.LogNow("[DrawDebug] PopulateListBox: Starting.");
+            //ClsDebug.LogNow("[PopulateListBox] PopulateListBox: Starting.");
 
             try
             {
@@ -532,7 +545,7 @@ namespace WinSize4
                 }
 
                 listView1.Items.Clear();
-                ClsDebug.LogNow("[DrawDebug] PopulateListBox: Items cleared.");
+                //ClsDebug.LogNow("[PopulateListBox] PopulateListBox: Items cleared.");
 
                 // Prepare the filter for case-insensitive comparison.
                 // An empty filter means "show everything".
@@ -597,7 +610,7 @@ namespace WinSize4
                         listView1.Items.Add(listViewItem);
                     }
                 }
-                ClsDebug.LogNow($"[DrawDebug] PopulateListBox: Finished. Total items in list: {listView1.Items.Count}.");
+                //ClsDebug.LogNow($"[PopulateListBox] PopulateListBox: Finished. Total items in list: {listView1.Items.Count}.");
 
                 // Try to re-select the previously selected item if it's still in the list.
                 if (lastSelectedTag != -1)
@@ -619,184 +632,17 @@ namespace WinSize4
         //**********************************************
         // Listbox selection changed
         //**********************************************
-        // private void listView1_SelectedIndexChanged(object sender, EventArgs e)
-        // {
-        //     try
-        //     {
-        //         // Define a list of all the textboxes we want to participate in highlighting.
-        //         var textboxesToSearch = new List<TextBox>
-        //             {
-        //                 tbName, tbExe, tbWindowClass, tbTitleInclude, tbTitleExclude,
-        //                 tbLeft, tbTop, tbWidth, tbHeight
-        //             };
-        // 
-        //         // First, reset all their background colors to the default.
-        //         foreach (var tb in textboxesToSearch)
-        //         {
-        //             tb.BackColor = SystemColors.Window;
-        //         }
-        // 
-        //         if (_ListBoxDoEvents)
-        //         {
-        //             //if (_lbLastSelectedIndex > -1)
-        //             //    SaveValuesForIndex(_lbLastSelectedIndex);
-        //             if (listView1.SelectedItems.Count > 0 && listView1.SelectedItems[0].Tag != null)
-        //             {
-        //                 ClsDebug.LogNow("[SelectedIndexChanged] Event fired. Processing selection.");
-        // 
-        //                 int Index = _savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag);
-        //                 int screenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[Index]);
-        // 
-        //                 groupBox2.Enabled = true;
-        // 
-        //                 ClsWindowProps Win = _savedWindows.Props[Index];
-        //                 if (Win.TitleInclude != null)
-        //                 {
-        //                     tbTitleInclude.Text = Win.TitleInclude;
-        //                 }
-        //                 else
-        //                 {
-        //                     tbTitleExclude.Text = "<No title>";
-        //                 }
-        //                 if (Win.TitleExclude != null)
-        //                 {
-        //                     tbTitleExclude.Text = Win.TitleExclude;
-        //                 }
-        //                 else
-        //                 {
-        //                     tbTitleInclude.Text = "";
-        //                 }
-        //                 if (ClsDebug.Debug)
-        //                     tbSavedWindowIndex.Text = Index.ToString();
-        //                 else
-        //                     tbSavedWindowIndex.Text = "";
-        //                 tbName.Text = Win.Name;
-        //                 tbWindowClass.Text = Win.WindowClass;
-        //                 cbWindowClass.Checked = Win.ConsiderWindowClass;
-        //                 cbSearchTitleInclude.Checked = Win.SearchTitleInclude;
-        //                 cbSearchTitleExclude.Checked = Win.SearchTitleExclude;
-        //                 tbExe.Text = Win.Exe;
-        //                 cbSearchExe.Checked = Win.SearchExe;
-        //                 cbIgnoreChildWindows.Checked = Win.IgnoreChildWindows;
-        //                 cbAlwaysMove.Checked = Win.AlwaysMove;
-        //                 cbCanResize.Checked = Win.CanResize;
-        // 
-        //                 cbCustomWidth.Checked = Win.MaxWidth;
-        //                 if (cbCustomWidth.Checked)
-        //                 {
-        //                     tbWidth.Text = _screens.ScreenList[screenIndex].CustomWidth.ToString();
-        //                     tbLeft.Text = "0";
-        //                 }
-        //                 else
-        //                 {
-        //                     tbWidth.Text = Win.Width.ToString();
-        //                     tbLeft.Text = Win.Left.ToString();
-        //                 }
-        // 
-        //                 cbCustomHeight.Checked = Win.MaxHeight;
-        //                 if (cbCustomHeight.Checked)
-        //                 {
-        //                     tbHeight.Text = _screens.ScreenList[screenIndex].CustomHeight.ToString();
-        //                     tbTop.Text = "0";
-        //                 }
-        //                 else
-        //                 {
-        //                     tbHeight.Text = Win.Height.ToString();
-        //                     tbTop.Text = Win.Top.ToString();
-        //                 }
-        // 
-        //                 cbFullScreen.Checked = Win.FullScreen;
-        //                 switch (Win.SearchTypeInclude)
-        //                 {
-        //                     case ClsWindowProps.Full:
-        //                         radioFullInclude.Checked = true;
-        //                         break;
-        //                     case ClsWindowProps.Contains:
-        //                         radioContainsInclude.Checked = true;
-        //                         break;
-        //                     case ClsWindowProps.StartsWith:
-        //                         radioStartsWithInclude.Checked = true;
-        //                         break;
-        //                 }
-        //                 switch (Win.SearchTypeExclude)
-        //                 {
-        //                     case ClsWindowProps.Full:
-        //                         radioFullExclude.Checked = true;
-        //                         break;
-        //                     case ClsWindowProps.Contains:
-        //                         radioContainsExclude.Checked = true;
-        //                         break;
-        //                     case ClsWindowProps.StartsWith:
-        //                         radioStartsWithExclude.Checked = true;
-        //                         break;
-        //                 }
-        // 
-        //                 // Highlighting Logic
-        //                 string filter = txtSearch.Text;
-        // 
-        //                 if (!string.IsNullOrWhiteSpace(filter))
-        //                 {
-        //                     // Loop through our list of textboxes again.
-        //                     foreach (var tb in textboxesToSearch)
-        //                     {
-        //                         // If the textbox's text contains the filter (case-insensitive)...
-        //                         if (tb.Text.IndexOf(filter, StringComparison.InvariantCultureIgnoreCase) >= 0)
-        //                         {
-        //                             // ...set its background color to our highlight color.
-        //                             tb.BackColor = _highlightColor;
-        //                         }
-        //                     }
-        //                 }
-        // 
-        //                 // This forces the WindowClass textbox to update its enabled state 
-        //                 // based on the initial value of the checkbox.
-        //                 cbWindowClass_CheckedChanged(this, EventArgs.Empty);
-        //             }
-        //             else
-        //             // No item selected
-        //             {
-        //                 // tbName.Text = "";
-        //                 // cbWindowClass.Checked = false;
-        //                 // tbWindowClass.Text = "";
-        //                 // tbTitleInclude.Text = "";
-        //                 // cbSearchTitleInclude.Checked = false;
-        //                 // tbTitleExclude.Text = "";
-        //                 // cbSearchTitleExclude.Checked = false;
-        //                 // tbExe.Text = "";
-        //                 // cbSearchExe.Checked = false;
-        //                 // groupBox2.Enabled = false;
-        //                 ResetDetailsPanel();
-        //             }
-        //         }
-        //     }
-        //     catch
-        //     (Exception ex)
-        //     {
-        //         ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "Error in SelectedIndexChanged");
-        //     }
-        // 
-        // }
-
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_ListBoxDoEvents)
             {
-                // If our guard flag is true, exit immediately.
-                // if (_isUpdatingListView) return;
-
                 // If an item is selected...
                 if (listView1.SelectedItems.Count > 0 && listView1.SelectedItems[0].Tag != null)
                 {
                     // ...call the method to load its details.
                     LoadDetailsForItem(listView1.SelectedItems[0]);
-                    ClsDebug.LogNow($"[SelectedIndexChanged] Item selected. Details panel updated. listView1.SelectedItems[0] '{listView1.SelectedItems[0]}'");
+                    //ClsDebug.LogNow($"[SelectedIndexChanged] Item selected. Details panel updated. listView1.SelectedItems[0] '{listView1.SelectedItems[0]}'");
                 }
-                // else
-                // {
-                //     // ...otherwise, and ONLY otherwise, reset the panel.
-                //     ResetDetailsPanel();
-                //     ClsDebug.LogNow("[SelectedIndexChanged] No item selected. Details panel reset.");
-                // }
             }
         }
 
@@ -1629,31 +1475,8 @@ namespace WinSize4
             // We can just show/hide it, which is simpler and cleaner.
             picClearSearch.Image = hasText ? Properties.Resources.clear_red : Properties.Resources.clear_gray;
 
-            // Remember the currently selected item's tag before we change the list.
-            // int previouslySelectedTag = -1;
-            // if (listView1.SelectedItems.Count > 0)
-            // {
-            //     previouslySelectedTag = (int)listView1.SelectedItems[0].Tag;
-            // }
-
             // Re-populate the list with the new filter.
             PopulateListBox(txtSearch.Text);
-
-
-            // After the list is rebuilt, check if our previously selected item is gone.
-            // if (previouslySelectedTag != -1)
-            // {
-            //     // Check if any item in the new list has the tag we remembered.
-            //     bool itemStillExists = listView1.Items
-            //                                     .Cast<ListViewItem>()
-            //                                     .Any(item => (int)item.Tag == previouslySelectedTag);
-            // 
-            //     // If the item no longer exists in the list, reset the details panel.
-            //     if (!itemStillExists)
-            //     {
-            //         ResetDetailsPanel();
-            //     }
-            // }
 
             // --- Manually refresh the details panel ---
             // After the list has been rebuilt, we check the state of the selection.
@@ -1740,7 +1563,7 @@ namespace WinSize4
 
             // 2. Handle the Label separately.
             tbSavedWindowIndex.Text = "";
-            ClsDebug.LogNow("[ResetDetailsPanel] Cleared tbSavedWindowIndex");
+            //ClsDebug.LogNow("[ResetDetailsPanel] Cleared tbSavedWindowIndex");
 
             // 3. Use the helper to find ALL TextBoxes, no matter where they are.
             var allTextBoxes = GetAllControls<TextBox>(groupBox2);
@@ -1748,7 +1571,7 @@ namespace WinSize4
             {
                 tb.Clear();
                 tb.BackColor = SystemColors.Window; // Reset background color
-                ClsDebug.LogNow($"[ResetDetailsPanel] Cleared and reset background color of TextBox: {tb.Name}");
+                //ClsDebug.LogNow($"[ResetDetailsPanel] Cleared and reset background color of TextBox: {tb.Name}");
             }
 
             // 4. Use the helper to find ALL CheckBoxes.
@@ -1756,7 +1579,7 @@ namespace WinSize4
             foreach (var cb in allCheckBoxes)
             {
                 cb.Checked = false;
-                ClsDebug.LogNow($"[ResetDetailsPanel] Unchecked CheckBox: {cb.Name}");
+                //ClsDebug.LogNow($"[ResetDetailsPanel] Unchecked CheckBox: {cb.Name}");
             }
 
             // 5. Use the helper to find ALL RadioButtons.
@@ -1764,7 +1587,7 @@ namespace WinSize4
             foreach (var rb in allRadioButtons)
             {
                 rb.Checked = false;
-                ClsDebug.LogNow($"[ResetDetailsPanel] Unchecked RadioButton: {rb.Name}");
+                //ClsDebug.LogNow($"[ResetDetailsPanel] Unchecked RadioButton: {rb.Name}");
             }
         }
 
@@ -1889,7 +1712,7 @@ namespace WinSize4
             if (e.Button == MouseButtons.Left)
             {
                 var hitTestInfo = listView1.HitTest(e.X, e.Y);
-                ClsDebug.LogNow($"[listView1_MouseDown] Mouse Down at X:{e.X}, Y:{e.Y}");
+                //ClsDebug.LogNow($"[listView1_MouseDown] Mouse Down at X:{e.X}, Y:{e.Y}");
 
                 // If the HitTest shows the click was on an empty area...
                 if (hitTestInfo.Item == null)

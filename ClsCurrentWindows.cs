@@ -65,7 +65,7 @@ namespace WinSize4
                     this.Add(hWnd);
                     Index = this.Windows.Count - 1;
                 }
-                ClsDebug.AddText("GetCurrentWindowsIndexForhWnd: " + Index);
+                //ClsDebug.AddText("GetCurrentWindowsIndexForhWnd: " + Index);
                 return Index;
             }
             catch

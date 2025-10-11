@@ -57,14 +57,32 @@ namespace WinSize4
 
         public static void LogText()
         {
-            if (!Debug || !IsPathInitialized()) return;
-            string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            Directory.CreateDirectory(_activePath);
-            string fullPath = Path.Combine(_activePath, "Debug.txt");
-            using (var writer = new StreamWriter(fullPath, true))
+            // if (!Debug || !IsPathInitialized()) return;
+            // string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            // Directory.CreateDirectory(_activePath);
+            // string fullPath = Path.Combine(_activePath, "Debug.txt");
+            // using (var writer = new StreamWriter(fullPath, true))
+            // {
+            //     writer.WriteLine(dt + " " + _text);
+            // }
+            // _text = "";
+
+            // The path logic remains the same.
+            string _path = Path.GetDirectoryName(Application.ExecutablePath);
+            Directory.CreateDirectory(_path);
+            string _FileName = "Debug.txt";
+
+            if (Debug && !string.IsNullOrEmpty(_text)) // Also, only write if there's something to log
             {
-                writer.WriteLine(dt + " " + _text);
+                using (var writer = new StreamWriter(_path + "\\" + _FileName, true))
+                {
+                    // The fix is here. We write the _text buffer directly, as it
+                    // already contains all the necessary timestamps and newlines.
+                    writer.Write(_text);
+                }
             }
+
+            // Always clear the buffer after writing.
             _text = "";
         }
 

@@ -130,7 +130,7 @@ public class ClsSavedWindows
     {
         int result = -1;
 
-        ClsDebug.AddText("GetIndexAllScreens: " + WindowProps.Title);
+        //ClsDebug.AddText("GetIndexAllScreens: " + WindowProps.Title);
         // Get list of matching saved windows
         List<ClsWindowProps> matchingSavedWindows = new List<ClsWindowProps>();
         for (int i = 0; i < this.Props.Count; i++)
@@ -222,7 +222,7 @@ public class ClsSavedWindows
                     ScreenList[j].Primary == false &&
                     ScreenList[j].Present)
                 {
-                    ClsDebug.AddText("  Another screen than current and not primary (" + j + ")");
+                    //ClsDebug.AddText("  Another screen than current and not primary (" + j + ")");
                     result = GetWindowIndexByTag(matchingSavedWindows[i].Tag);
                     break;
                 }
@@ -240,7 +240,7 @@ public class ClsSavedWindows
                     ScreenList[j].Primary == true &&
                     ScreenList[j].Present)
                 {
-                    ClsDebug.AddText("  Another screen than current and primary (" + j + ")");
+                    //ClsDebug.AddText("  Another screen than current and primary (" + j + ")");
                     result = GetWindowIndexByTag(matchingSavedWindows[i].Tag);
                     break;
                 }
@@ -257,13 +257,13 @@ public class ClsSavedWindows
                     ScreenList[j].Present &&
                     j == ScreenIndex)
                 {
-                    ClsDebug.AddText("  This screen matches (" + j + ")");
+                    //ClsDebug.AddText("  This screen matches (" + j + ")");
                     result = GetWindowIndexByTag(matchingSavedWindows[i].Tag);
                     break;
                 }
             }
         }
-        ClsDebug.AddText("  Saved window index chosen: " + result);
+        //ClsDebug.AddText("  Saved window index chosen: " + result);
         return result;
     }
 
