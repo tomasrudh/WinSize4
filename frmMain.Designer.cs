@@ -96,10 +96,19 @@
             chkResetOnMinimize = new CheckBox();
             btnResetColumns = new Button();
             chkPortableMode = new CheckBox();
+            searchLabel = new Label();
+            pnlSearch = new Panel();
+            txtSearch = new TextBox();
+            picClearSearch = new PictureBox();
+            contextMenuStrip2 = new ContextMenuStrip(components);
+            btnPickColor = new Button();
+            colorDialog1 = new ColorDialog();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox4.SuspendLayout();
             groupBox3.SuspendLayout();
+            pnlSearch.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)picClearSearch).BeginInit();
             SuspendLayout();
             // 
             // timer1
@@ -680,11 +689,11 @@
             // 
             listView1.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4 });
             listView1.FullRowSelect = true;
-            listView1.Location = new Point(20, 23);
+            listView1.Location = new Point(20, 60);
             listView1.Margin = new Padding(6, 5, 6, 5);
             listView1.MultiSelect = false;
             listView1.Name = "listView1";
-            listView1.Size = new Size(615, 1019);
+            listView1.Size = new Size(619, 982);
             listView1.Sorting = SortOrder.Ascending;
             listView1.StateImageList = stateImageList;
             listView1.TabIndex = 44;
@@ -695,6 +704,7 @@
             listView1.SelectedIndexChanged += listView1_SelectedIndexChanged;
             listView1.KeyDown += listView1_KeyDown;
             listView1.MouseClick += listView1_MouseClick;
+            listView1.MouseDown += listView1_MouseDown;
             listView1.Resize += listView1_Resize;
             // 
             // columnHeader1
@@ -808,6 +818,66 @@
             chkPortableMode.Text = "Portable mode";
             chkPortableMode.UseVisualStyleBackColor = true;
             // 
+            // searchLabel
+            // 
+            searchLabel.AutoSize = true;
+            searchLabel.Location = new Point(20, 26);
+            searchLabel.Margin = new Padding(6, 0, 6, 0);
+            searchLabel.Name = "searchLabel";
+            searchLabel.Size = new Size(64, 25);
+            searchLabel.TabIndex = 60;
+            searchLabel.Text = "Search";
+            // 
+            // pnlSearch
+            // 
+            pnlSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pnlSearch.BackColor = SystemColors.Window;
+            pnlSearch.BorderStyle = BorderStyle.FixedSingle;
+            pnlSearch.Controls.Add(txtSearch);
+            pnlSearch.Controls.Add(picClearSearch);
+            pnlSearch.Location = new Point(93, 24);
+            pnlSearch.Name = "pnlSearch";
+            pnlSearch.Size = new Size(509, 31);
+            pnlSearch.TabIndex = 61;
+            // 
+            // txtSearch
+            // 
+            txtSearch.BorderStyle = BorderStyle.None;
+            txtSearch.Location = new Point(4, 2);
+            txtSearch.Name = "txtSearch";
+            txtSearch.PlaceholderText = "Type to search...";
+            txtSearch.Size = new Size(467, 24);
+            txtSearch.TabIndex = 1;
+            txtSearch.TextChanged += txtSearch_TextChanged;
+            // 
+            // picClearSearch
+            // 
+            picClearSearch.Dock = DockStyle.Right;
+            picClearSearch.Image = Properties.Resources.clear_gray;
+            picClearSearch.Location = new Point(476, 0);
+            picClearSearch.Name = "picClearSearch";
+            picClearSearch.Size = new Size(31, 29);
+            picClearSearch.SizeMode = PictureBoxSizeMode.CenterImage;
+            picClearSearch.TabIndex = 0;
+            picClearSearch.TabStop = false;
+            picClearSearch.Click += picClearSearch_Click;
+            // 
+            // contextMenuStrip2
+            // 
+            contextMenuStrip2.ImageScalingSize = new Size(24, 24);
+            contextMenuStrip2.Name = "contextMenuStrip2";
+            contextMenuStrip2.Size = new Size(61, 4);
+            // 
+            // btnPickColor
+            // 
+            btnPickColor.Location = new Point(608, 24);
+            btnPickColor.Name = "btnPickColor";
+            btnPickColor.Size = new Size(31, 31);
+            btnPickColor.TabIndex = 62;
+            btnPickColor.Text = "🎨";
+            btnPickColor.UseVisualStyleBackColor = true;
+            btnPickColor.Click += btnPickColor_Click;
+            // 
             // frmMain
             // 
             AcceptButton = butOK;
@@ -815,6 +885,8 @@
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = butCancel;
             ClientSize = new Size(1374, 1118);
+            Controls.Add(btnPickColor);
+            Controls.Add(searchLabel);
             Controls.Add(chkPortableMode);
             Controls.Add(btnResetColumns);
             Controls.Add(chkResetOnMinimize);
@@ -832,6 +904,7 @@
             Controls.Add(butExit);
             Controls.Add(butApply);
             Controls.Add(butOK);
+            Controls.Add(pnlSearch);
             FormBorderStyle = FormBorderStyle.Fixed3D;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(6, 5, 6, 5);
@@ -851,6 +924,9 @@
             groupBox4.PerformLayout();
             groupBox3.ResumeLayout(false);
             groupBox3.PerformLayout();
+            pnlSearch.ResumeLayout(false);
+            pnlSearch.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)picClearSearch).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -923,6 +999,13 @@
         private Button btnResetColumns;
         private ImageList stateImageList;
         private CheckBox chkPortableMode;
+        private Label searchLabel;
+        private Panel pnlSearch;
+        private PictureBox picClearSearch;
+        private TextBox txtSearch;
+        private ContextMenuStrip contextMenuStrip2;
+        private Button btnPickColor;
+        private ColorDialog colorDialog1;
     }
 }
 

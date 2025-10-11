@@ -26,6 +26,8 @@ namespace WinSize4
         public bool isPaused { get; set; } = false;
         public bool ResetOnMinimize { get; set; } = false;
         public Dictionary<string, int> ListViewColumnWidths { get; set; }
+        public int HighlightColorArgb { get; set; } = Color.FromArgb(255, 255, 180).ToArgb(); // Default to light yellow
+        public int[] CustomColors { get; set; }
 
         //**********************************************
         /// <summary>
@@ -271,6 +273,12 @@ namespace WinSize4
                         this.isPaused = saveList.isPaused;
                         this.ResetOnMinimize = saveList.ResetOnMinimize;
                         this.ListViewColumnWidths = saveList.ListViewColumnWidths;
+                        // If the value exists in the file, use it. Otherwise, the default remains.
+                        if (saveList.HighlightColorArgb != 0)
+                        {
+                            this.HighlightColorArgb = saveList.HighlightColorArgb;
+                        }
+                        this.CustomColors = saveList.CustomColors;
                     }
                 }
             }
@@ -304,6 +312,8 @@ namespace WinSize4
             saveList.isPaused = this.isPaused;
             saveList.ResetOnMinimize = this.ResetOnMinimize;
             saveList.ListViewColumnWidths = this.ListViewColumnWidths;
+            saveList.HighlightColorArgb = this.HighlightColorArgb;
+            saveList.CustomColors = this.CustomColors;
 
             var options = new JsonSerializerOptions()
             {
@@ -366,5 +376,9 @@ namespace WinSize4
         { get; set; }
         public bool PortableMode
         { get; set; } = true;
+        public int HighlightColorArgb
+        { get; set; }
+        public int[] CustomColors
+        { get; set; }
     }
 }

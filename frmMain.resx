@@ -211,7 +211,7 @@
         AAEAAAD/////AQAAAAAAAAAMAgAAAEZTeXN0ZW0uV2luZG93cy5Gb3JtcywgQ3VsdHVyZT1uZXV0cmFs
         LCBQdWJsaWNLZXlUb2tlbj1iNzdhNWM1NjE5MzRlMDg5BQEAAAAmU3lzdGVtLldpbmRvd3MuRm9ybXMu
         SW1hZ2VMaXN0U3RyZWFtZXIBAAAABERhdGEHAgIAAAAJAwAAAA8DAAAAVgYAAAJNU0Z0AUkBTAIBAQIB
-        AAFAAQABQAEAARABAAEQAQAE/wERAQAI/wFCAU0BNgcAATYDAAEoAwABQAMAARADAAEBAQABEAYAAQga
+        AAHYAQAB2AEAARABAAEQAQAE/wERAQAI/wFCAU0BNgcAATYDAAEoAwABQAMAARADAAEBAQABEAYAAQga
         AAHeAXsBdwFfATEBRwENATsBDQE7ATEBRwF3AV8B3gF7EAAB3gF/AdYBegGtAX0BKQF9ASkBfQGtAX0B
         1gF6Ad4Bf0wAAf8BfwF3AV8BDQE3AQ4BPwF2AVsBmQFrAZkBawF2AVsBDgE/AQ0BNwF3AV8B/wF/CAAB
         /wF/AbUBegEIAX0BSgF9AZQBegEYAXsBGAF7AZQBegFKAX0BCAF9AbUBegH/AX9GAAH/AX8CUwHtATYB
@@ -242,6 +242,12 @@
   </data>
   <metadata name="contextMenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>314, 17</value>
+  </metadata>
+  <metadata name="contextMenuStrip2.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>711, 17</value>
+  </metadata>
+  <metadata name="colorDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>927, 17</value>
   </metadata>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
