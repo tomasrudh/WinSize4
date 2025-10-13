@@ -678,6 +678,7 @@
             listView1.Name = "listView1";
             listView1.Size = new Size(432, 613);
             listView1.Sorting = SortOrder.Ascending;
+            listView1.StateImageList = stateImageList;
             listView1.TabIndex = 44;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
