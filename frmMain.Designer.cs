@@ -689,7 +689,7 @@
             // columnHeader1
             // 
             columnHeader1.Text = "Name";
-            columnHeader1.Width = 165;
+            columnHeader1.Width = 245;
             // 
             // columnHeader2
             // 
