@@ -202,7 +202,8 @@ namespace WinSize4
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
                         currentWindowProps.Title != _lastTitle &&
-                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true))
+                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true) &&
+                        !_savedWindows.Props[targetSavedWindowsIndex].Disabled)
                     {
                         int targetScreenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[targetSavedWindowsIndex]);
                         //bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
@@ -260,6 +261,7 @@ namespace WinSize4
                     row = new string[] { _savedWindows.Props[i].Name, _savedWindows.Props[i].MonitorBoundsWidth.ToString(), _savedWindows.Props[i].MonitorBoundsHeight.ToString(), Primary };
                     var listViewItem = new ListViewItem(row);
                     listViewItem.Tag = _savedWindows.Props[i].Tag;
+                    listViewItem.StateImageIndex = _savedWindows.Props[i].Disabled ? 1 : 0;
                     if (_screens.GetScreenIndexForWindow(_savedWindows.Props[i]) == -1)
                     {
                         listView1.Items.Add(listViewItem);
