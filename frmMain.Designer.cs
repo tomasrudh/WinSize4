@@ -87,12 +87,12 @@
             columnHeader2 = new ColumnHeader();
             columnHeader3 = new ColumnHeader();
             columnHeader4 = new ColumnHeader();
+            stateImageList = new ImageList(components);
             cbShowAllWindows = new CheckBox();
             cbRunAtLogin = new CheckBox();
             contextMenuStrip1 = new ContextMenuStrip(components);
             txtVersion = new TextBox();
             cbIsPaused = new CheckBox();
-            stateImageList = new ImageList(components);
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox4.SuspendLayout();
@@ -703,6 +703,14 @@
             // 
             columnHeader4.Text = "Primary";
             // 
+            // stateImageList
+            // 
+            stateImageList.ColorDepth = ColorDepth.Depth8Bit;
+            stateImageList.ImageStream = (ImageListStreamer)resources.GetObject("stateImageList.ImageStream");
+            stateImageList.TransparentColor = Color.Transparent;
+            stateImageList.Images.SetKeyName(0, "green-checkmark-icon-16.png");
+            stateImageList.Images.SetKeyName(1, "red-x-icon-16.png");
+            // 
             // cbShowAllWindows
             // 
             cbShowAllWindows.AutoSize = true;
@@ -753,14 +761,6 @@
             cbIsPaused.Text = "Pause";
             cbIsPaused.UseVisualStyleBackColor = true;
             cbIsPaused.CheckedChanged += cbIsPaused_CheckedChanged;
-            // 
-            // stateImageList
-            // 
-            stateImageList.ColorDepth = ColorDepth.Depth8Bit;
-            stateImageList.ImageStream = (ImageListStreamer)resources.GetObject("stateImageList.ImageStream");
-            stateImageList.TransparentColor = Color.Transparent;
-            stateImageList.Images.SetKeyName(0, "clear-gray.png");
-            stateImageList.Images.SetKeyName(1, "clear-red.png");
             // 
             // frmMain
             // 

@@ -1014,6 +1014,34 @@ namespace WinSize4
                     contextMenuStrip1.Show(Cursor.Position);
                 }
             }
+            // Use HitTest to find the item that was clicked on.
+            var lvi = listView1.HitTest(e.Location).Item;
+
+            // If the user clicked on a valid item...
+            if (lvi != null)
+            {
+                try
+                {
+                    int tag = (int)lvi.Tag;
+                    int savedIndex = _savedWindows.GetWindowIndexByTag(tag);
+
+                    if (savedIndex != -1)
+                    {
+                        // 1. Toggle the "Disabled" property in the data source
+                        _savedWindows.Props[savedIndex].Disabled = !_savedWindows.Props[savedIndex].Disabled;
+
+                        // 2. Update the image to reflect the new state
+                        //    Index 1 is the red cross, Index 0 is the green tick.
+                        lvi.StateImageIndex = _savedWindows.Props[savedIndex].Disabled ? 1 : 0;
+
+                        _dirty = true; // Mark that there are unsaved changes
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "Error in listView1_MouseClick");
+                }
+            }
         }
 
         //**********************************************
