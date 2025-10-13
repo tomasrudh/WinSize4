@@ -92,6 +92,7 @@
             contextMenuStrip1 = new ContextMenuStrip(components);
             txtVersion = new TextBox();
             cbIsPaused = new CheckBox();
+            stateImageList = new ImageList(components);
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox4.SuspendLayout();
@@ -728,7 +729,7 @@
             // contextMenuStrip1
             // 
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(181, 26);
+            contextMenuStrip1.Size = new Size(61, 4);
             // 
             // txtVersion
             // 
@@ -751,6 +752,14 @@
             cbIsPaused.Text = "Pause";
             cbIsPaused.UseVisualStyleBackColor = true;
             cbIsPaused.CheckedChanged += cbIsPaused_CheckedChanged;
+            // 
+            // stateImageList
+            // 
+            stateImageList.ColorDepth = ColorDepth.Depth8Bit;
+            stateImageList.ImageStream = (ImageListStreamer)resources.GetObject("stateImageList.ImageStream");
+            stateImageList.TransparentColor = Color.Transparent;
+            stateImageList.Images.SetKeyName(0, "clear-gray.png");
+            stateImageList.Images.SetKeyName(1, "clear-red.png");
             // 
             // frmMain
             // 
@@ -858,6 +867,7 @@
         public NotifyIcon notifyIcon1;
         private ContextMenuStrip contextMenuStrip1;
         private CheckBox cbIsPaused;
+        private ImageList stateImageList;
     }
 }
 
