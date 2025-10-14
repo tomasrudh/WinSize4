@@ -39,11 +39,11 @@
             butRemove = new Button();
             label3 = new Label();
             label4 = new Label();
-            tbTop = new TextBox();
+            tbTop = new NumericUpDown();
             label5 = new Label();
-            tbWidth = new TextBox();
+            tbWidth = new NumericUpDown();
             label6 = new Label();
-            tbHeight = new TextBox();
+            tbHeight = new NumericUpDown();
             cbCustomWidth = new CheckBox();
             cbCustomHeight = new CheckBox();
             cbFullScreen = new CheckBox();
@@ -93,11 +93,17 @@
             contextMenuStrip1 = new ContextMenuStrip(components);
             txtVersion = new TextBox();
             cbIsPaused = new CheckBox();
+            tbTop = new NumericUpDown();
+            tbWidth = new NumericUpDown();
+            tbHeight = new NumericUpDown();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tbLeft).BeginInit();
             groupBox4.SuspendLayout();
             groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)tbTop).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tbWidth).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tbHeight).BeginInit();
             SuspendLayout();
             // 
             // timer1
@@ -200,7 +206,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(14, 377);
+            label5.Location = new Point(14, 371);
             label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
             label5.Size = new Size(39, 15);
@@ -219,7 +225,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(14, 407);
+            label6.Location = new Point(14, 401);
             label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
             label6.Size = new Size(43, 15);
@@ -762,6 +768,27 @@
             cbIsPaused.UseVisualStyleBackColor = true;
             cbIsPaused.CheckedChanged += cbIsPaused_CheckedChanged;
             // 
+            // tbTop
+            // 
+            tbTop.Location = new Point(168, 340);
+            tbTop.Name = "tbTop";
+            tbTop.Size = new Size(120, 23);
+            tbTop.TabIndex = 61;
+            // 
+            // tbWidth
+            // 
+            tbWidth.Location = new Point(168, 369);
+            tbWidth.Name = "tbWidth";
+            tbWidth.Size = new Size(120, 23);
+            tbWidth.TabIndex = 62;
+            // 
+            // tbHeight
+            // 
+            tbHeight.Location = new Point(168, 399);
+            tbHeight.Name = "tbHeight";
+            tbHeight.Size = new Size(120, 23);
+            tbHeight.TabIndex = 63;
+            // 
             // frmMain
             // 
             AcceptButton = butOK;
@@ -801,6 +828,10 @@
             groupBox4.PerformLayout();
             groupBox3.ResumeLayout(false);
             groupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)tbTop).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tbLeft).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tbHeight).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tbWidth).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -816,11 +847,11 @@
         private Button butRemove;
         private Label label3;
         private Label label4;
-        private TextBox tbTop;
+        private NumericUpDown tbTop;
         private Label label5;
-        private TextBox tbWidth;
+        private NumericUpDown tbWidth;
         private Label label6;
-        private TextBox tbHeight;
+        private NumericUpDown tbHeight;
         private CheckBox cbCustomWidth;
         private CheckBox cbCustomHeight;
         private CheckBox cbFullScreen;
