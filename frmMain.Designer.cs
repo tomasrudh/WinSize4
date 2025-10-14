@@ -38,7 +38,6 @@
             butExit = new Button();
             butRemove = new Button();
             label3 = new Label();
-            tbLeft = new TextBox();
             label4 = new Label();
             tbTop = new TextBox();
             label5 = new Label();
@@ -60,9 +59,9 @@
             tbName = new TextBox();
             cbResetIfNewScreen = new CheckBox();
             groupBox2 = new GroupBox();
+            tbLeft = new NumericUpDown();
             cbCanResize = new CheckBox();
             cbIgnoreChildWindows = new CheckBox();
-            butDuplicate = new Button();
             groupBox4 = new GroupBox();
             radioStartsWithInclude = new RadioButton();
             radioContainsInclude = new RadioButton();
@@ -80,6 +79,7 @@
             label8 = new Label();
             cbWindowClass = new CheckBox();
             cbAlwaysMove = new CheckBox();
+            butDuplicate = new Button();
             butResetMoved = new Button();
             toolTip1 = new ToolTip(components);
             listView1 = new ListView();
@@ -95,6 +95,7 @@
             cbIsPaused = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)tbLeft).BeginInit();
             groupBox4.SuspendLayout();
             groupBox3.SuspendLayout();
             SuspendLayout();
@@ -177,15 +178,6 @@
             label3.TabIndex = 10;
             label3.Text = "Left";
             // 
-            // tbLeft
-            // 
-            tbLeft.Location = new Point(168, 308);
-            tbLeft.Margin = new Padding(4, 3, 4, 3);
-            tbLeft.Name = "tbLeft";
-            tbLeft.Size = new Size(131, 23);
-            tbLeft.TabIndex = 9;
-            tbLeft.TextChanged += tbLeft_TextChanged;
-            // 
             // label4
             // 
             label4.AutoSize = true;
@@ -198,7 +190,7 @@
             // 
             // tbTop
             // 
-            tbTop.Location = new Point(168, 338);
+            tbTop.Location = new Point(167, 339);
             tbTop.Margin = new Padding(4, 3, 4, 3);
             tbTop.Name = "tbTop";
             tbTop.Size = new Size(131, 23);
@@ -405,9 +397,9 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(tbLeft);
             groupBox2.Controls.Add(cbCanResize);
             groupBox2.Controls.Add(cbIgnoreChildWindows);
-            groupBox2.Controls.Add(butDuplicate);
             groupBox2.Controls.Add(groupBox4);
             groupBox2.Controls.Add(groupBox3);
             groupBox2.Controls.Add(tbSavedWindowIndex);
@@ -422,7 +414,6 @@
             groupBox2.Controls.Add(label2);
             groupBox2.Controls.Add(label3);
             groupBox2.Controls.Add(butRemove);
-            groupBox2.Controls.Add(tbLeft);
             groupBox2.Controls.Add(cbSearchExe);
             groupBox2.Controls.Add(tbTop);
             groupBox2.Controls.Add(tbWidth);
@@ -432,6 +423,7 @@
             groupBox2.Controls.Add(cbCustomWidth);
             groupBox2.Controls.Add(cbFullScreen);
             groupBox2.Controls.Add(cbCustomHeight);
+            groupBox2.Controls.Add(butDuplicate);
             groupBox2.Location = new Point(463, 14);
             groupBox2.Margin = new Padding(4, 3, 4, 3);
             groupBox2.Name = "groupBox2";
@@ -441,6 +433,14 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Selected window";
             groupBox2.Enter += groupBox2_Enter;
+            // 
+            // tbLeft
+            // 
+            tbLeft.Location = new Point(168, 310);
+            tbLeft.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            tbLeft.Name = "tbLeft";
+            tbLeft.Size = new Size(120, 23);
+            tbLeft.TabIndex = 60;
             // 
             // cbCanResize
             // 
@@ -462,17 +462,6 @@
             cbIgnoreChildWindows.TabIndex = 58;
             cbIgnoreChildWindows.Text = "Ignore Child Windows";
             cbIgnoreChildWindows.UseVisualStyleBackColor = true;
-            // 
-            // butDuplicate
-            // 
-            butDuplicate.Location = new Point(164, 428);
-            butDuplicate.Margin = new Padding(4, 3, 4, 3);
-            butDuplicate.Name = "butDuplicate";
-            butDuplicate.Size = new Size(136, 27);
-            butDuplicate.TabIndex = 57;
-            butDuplicate.Text = "Duplicate";
-            butDuplicate.UseVisualStyleBackColor = true;
-            butDuplicate.Click += butDuplicate_Click;
             // 
             // groupBox4
             // 
@@ -658,6 +647,17 @@
             cbAlwaysMove.Text = "Always move";
             cbAlwaysMove.UseVisualStyleBackColor = true;
             // 
+            // butDuplicate
+            // 
+            butDuplicate.Location = new Point(164, 428);
+            butDuplicate.Margin = new Padding(4, 3, 4, 3);
+            butDuplicate.Name = "butDuplicate";
+            butDuplicate.Size = new Size(136, 27);
+            butDuplicate.TabIndex = 57;
+            butDuplicate.Text = "Duplicate";
+            butDuplicate.UseVisualStyleBackColor = true;
+            butDuplicate.Click += butDuplicate_Click;
+            // 
             // butResetMoved
             // 
             butResetMoved.Location = new Point(811, 516);
@@ -775,7 +775,6 @@
             Controls.Add(cbShowAllWindows);
             Controls.Add(listView1);
             Controls.Add(butResetMoved);
-            Controls.Add(groupBox2);
             Controls.Add(cbResetIfNewScreen);
             Controls.Add(groupBox1);
             Controls.Add(butEditScreens);
@@ -783,6 +782,7 @@
             Controls.Add(butExit);
             Controls.Add(butApply);
             Controls.Add(butOK);
+            Controls.Add(groupBox2);
             FormBorderStyle = FormBorderStyle.Fixed3D;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4, 3, 4, 3);
@@ -796,6 +796,7 @@
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)tbLeft).EndInit();
             groupBox4.ResumeLayout(false);
             groupBox4.PerformLayout();
             groupBox3.ResumeLayout(false);
@@ -815,7 +816,6 @@
         private Button butRemove;
         private Label label3;
         private Label label4;
-        private TextBox tbLeft;
         private TextBox tbTop;
         private Label label5;
         private TextBox tbWidth;
@@ -869,6 +869,7 @@
         private ContextMenuStrip contextMenuStrip1;
         private CheckBox cbIsPaused;
         private ImageList stateImageList;
+        private NumericUpDown tbLeft;
     }
 }
 
