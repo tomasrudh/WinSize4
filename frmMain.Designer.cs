@@ -93,17 +93,14 @@
             contextMenuStrip1 = new ContextMenuStrip(components);
             txtVersion = new TextBox();
             cbIsPaused = new CheckBox();
-            tbTop = new NumericUpDown();
-            tbWidth = new NumericUpDown();
-            tbHeight = new NumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)tbTop).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tbWidth).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tbHeight).BeginInit();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tbLeft).BeginInit();
             groupBox4.SuspendLayout();
             groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)tbTop).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)tbWidth).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)tbHeight).BeginInit();
             SuspendLayout();
             // 
             // timer1
@@ -196,11 +193,12 @@
             // 
             // tbTop
             // 
-            tbTop.Location = new Point(167, 339);
+            tbTop.Location = new Point(168, 340);
             tbTop.Margin = new Padding(4, 3, 4, 3);
+            tbTop.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             tbTop.Name = "tbTop";
-            tbTop.Size = new Size(131, 23);
-            tbTop.TabIndex = 11;
+            tbTop.Size = new Size(120, 23);
+            tbTop.TabIndex = 61;
             tbTop.TextChanged += tbTop_TextChanged;
             // 
             // label5
@@ -215,11 +213,12 @@
             // 
             // tbWidth
             // 
-            tbWidth.Location = new Point(168, 368);
+            tbWidth.Location = new Point(168, 369);
             tbWidth.Margin = new Padding(4, 3, 4, 3);
+            tbWidth.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             tbWidth.Name = "tbWidth";
-            tbWidth.Size = new Size(131, 23);
-            tbWidth.TabIndex = 13;
+            tbWidth.Size = new Size(120, 23);
+            tbWidth.TabIndex = 62;
             tbWidth.TextChanged += tbWidth_TextChanged;
             // 
             // label6
@@ -234,11 +233,12 @@
             // 
             // tbHeight
             // 
-            tbHeight.Location = new Point(168, 398);
+            tbHeight.Location = new Point(168, 399);
             tbHeight.Margin = new Padding(4, 3, 4, 3);
+            tbHeight.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             tbHeight.Name = "tbHeight";
-            tbHeight.Size = new Size(131, 23);
-            tbHeight.TabIndex = 15;
+            tbHeight.Size = new Size(120, 23);
+            tbHeight.TabIndex = 63;
             tbHeight.TextChanged += tbHeight_TextChanged;
             // 
             // cbCustomWidth
@@ -443,7 +443,7 @@
             // tbLeft
             // 
             tbLeft.Location = new Point(168, 310);
-            tbLeft.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            tbLeft.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             tbLeft.Name = "tbLeft";
             tbLeft.Size = new Size(120, 23);
             tbLeft.TabIndex = 60;
@@ -768,27 +768,6 @@
             cbIsPaused.UseVisualStyleBackColor = true;
             cbIsPaused.CheckedChanged += cbIsPaused_CheckedChanged;
             // 
-            // tbTop
-            // 
-            tbTop.Location = new Point(168, 340);
-            tbTop.Name = "tbTop";
-            tbTop.Size = new Size(120, 23);
-            tbTop.TabIndex = 61;
-            // 
-            // tbWidth
-            // 
-            tbWidth.Location = new Point(168, 369);
-            tbWidth.Name = "tbWidth";
-            tbWidth.Size = new Size(120, 23);
-            tbWidth.TabIndex = 62;
-            // 
-            // tbHeight
-            // 
-            tbHeight.Location = new Point(168, 399);
-            tbHeight.Name = "tbHeight";
-            tbHeight.Size = new Size(120, 23);
-            tbHeight.TabIndex = 63;
-            // 
             // frmMain
             // 
             AcceptButton = butOK;
@@ -819,6 +798,9 @@
             Text = "WinSize4";
             FormClosing += frmMain_FormClosing;
             Load += Form1_Load;
+            ((System.ComponentModel.ISupportInitialize)tbTop).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tbWidth).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tbHeight).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
@@ -828,10 +810,6 @@
             groupBox4.PerformLayout();
             groupBox3.ResumeLayout(false);
             groupBox3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)tbTop).EndInit();
-            ((System.ComponentModel.ISupportInitialize)tbLeft).EndInit();
-            ((System.ComponentModel.ISupportInitialize)tbHeight).EndInit();
-            ((System.ComponentModel.ISupportInitialize)tbWidth).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
