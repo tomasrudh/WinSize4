@@ -9,14 +9,14 @@ namespace WinSize4
     public class ClsScreens
     {
         public List<ClsScreenList> ScreenList = new List<ClsScreenList>();
-        private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+        //private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
         private string _fileNameWindows = "Screens.json";
 
         //**********************************************
         /// <summary> Get all current screens </summary>
         /// <returns>True if a screen is added</returns>
         //**********************************************
-        public bool AddNewScreens()
+        public bool AddNewScreens(string dataPath)
         {
             bool Added = false;
             foreach (Screen screen in Screen.AllScreens)
@@ -48,7 +48,7 @@ namespace WinSize4
                         Y = screen.Bounds.Y,
                         Primary = screen.Primary
                     };
-                    ClsDebug.LogNow("AddNewScreens: New screen added " + screen.Bounds.Width + " " + screen.Bounds.Height + " " + screen.Primary);
+                    ClsDebug.LogNow(dataPath, "AddNewScreens: New screen added " + screen.Bounds.Width + " " + screen.Bounds.Height + " " + screen.Primary);
                     this.ScreenList.Add(_newScreen);
                     Added = true;
                 }
@@ -80,7 +80,7 @@ namespace WinSize4
         /// <summary>Marks screens as present</summary>
         /// <returns>True if screen presence has changed</returns>
         //**********************************************
-        public bool SetPresent()
+        public bool SetPresent(string dataPath)
         {
             bool Changed = false;
             Screen[] AllScreens = System.Windows.Forms.Screen.AllScreens;
@@ -104,7 +104,7 @@ namespace WinSize4
                     if (this.ScreenList[i].Present == false)
                     {
                         Changed = true;
-                        ClsDebug.LogNow("SetPresent: Screen " + i + " is now present");
+                        ClsDebug.LogNow(dataPath, "SetPresent: Screen " + i + " is now present");
                     }
                     this.ScreenList[i].Present = true;
                 }
@@ -113,7 +113,7 @@ namespace WinSize4
                     if (this.ScreenList[i].Present == true)
                     {
                         Changed = true;
-                        ClsDebug.LogNow("SetPresent: Screen " + i + " is no longer present");
+                        ClsDebug.LogNow(dataPath, "SetPresent: Screen " + i + " is no longer present");
                     }
                     this.ScreenList[i].Present = false;
                 }
@@ -125,9 +125,9 @@ namespace WinSize4
         /// <summary>Cleans out Screen no longer available</summary>
         /// <returns>True if at least one Screen was deleted</returns>
         //**********************************************
-        public bool CleanScreenList()
+        public bool CleanScreenList(string dataPath)
         {
-            AddNewScreens();
+            AddNewScreens(dataPath);
             bool Deleted = false;
             Screen[] CurrentScreens = Screen.AllScreens;
             //foreach (ClsScreenList ListScr in this.ScreenList)
@@ -145,7 +145,7 @@ namespace WinSize4
                 }
                 if (!Found)
                 {
-                    ClsDebug.LogNow("CleanScreenList: Screen deleted " + this.ScreenList[i].BoundsWidth + " " + this.ScreenList[i].BoundsHeight + "" + this.ScreenList[i].Primary);
+                    ClsDebug.LogNow(dataPath, "CleanScreenList: Screen deleted " + this.ScreenList[i].BoundsWidth + " " + this.ScreenList[i].BoundsHeight + "" + this.ScreenList[i].Primary);
                     this.ScreenList.RemoveAt(i);
                     Deleted = true;
                 }
@@ -156,14 +156,14 @@ namespace WinSize4
         //**********************************************
         /// <summary> Saves data to disk </summary>
         //**********************************************
-        public void Save()
+        public void Save(string dataPath)
         {
             var options = new JsonSerializerOptions()
             {
                 WriteIndented = true
             };
-            Directory.CreateDirectory(_path);
-            using (var writer = new StreamWriter(_path + "\\" + _fileNameWindows))
+            Directory.CreateDirectory(dataPath);
+            using (var writer = new StreamWriter(dataPath + "\\" + _fileNameWindows))
             {
                 String _json = JsonSerializer.Serialize(this.ScreenList, options);
                 writer.Write(_json);
@@ -173,11 +173,11 @@ namespace WinSize4
         //**********************************************
         /// <summary> Loads data from disk </summary>
         //**********************************************
-        public void Load()
+        public void Load(string dataPath)
         {
-            if (File.Exists(_path + "\\" + _fileNameWindows))
+            if (File.Exists(dataPath + "\\" + _fileNameWindows))
             {
-                using (StreamReader r = new StreamReader(_path + "\\" + _fileNameWindows))
+                using (StreamReader r = new StreamReader(dataPath + "\\" + _fileNameWindows))
                 {
                     String json = r.ReadToEnd();
                     this.ScreenList = JsonSerializer.Deserialize<List<ClsScreenList>>(json);

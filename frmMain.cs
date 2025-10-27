@@ -10,10 +10,10 @@ namespace WinSize4
 {
     public partial class frmMain : Form
     {
+        public ClsSettings _settings = new ClsSettings();                    // Global settings
         public ClsCurrentWindows _currentWindows = new ClsCurrentWindows();  // Windows open right now
         public ClsSavedWindows _savedWindows = new ClsSavedWindows();        // Windows saved on file
         public ClsScreens _screens = new ClsScreens();
-        public ClsSettings _settings = new ClsSettings();                    // Global settings
         const int _hotKeyID = 1;
         //const int _hotKeyModifierLeft = 2;    //Alt = 1, Ctrl = 2, Shift = 4, Win(Windows key for opening the start menu) = 8
         //const int _hotKeyModifierRight = 4;   //Alt = 1, Ctrl = 2, Shift = 4, Win(Windows key for opening the start menu) = 8
@@ -32,27 +32,27 @@ namespace WinSize4
         {
             InitializeComponent();
             _settings.LoadFromFile();
-            _savedWindows.Load();
-            _screens.Load();
-            _screens.AddNewScreens();
-            _screens.SetPresent();
-            _screens.Save();
+            _savedWindows.Load(_settings.dataPath);
+            _screens.Load(_settings.dataPath);
+            _screens.AddNewScreens(_settings.dataPath);
+            _screens.SetPresent(_settings.dataPath);
+            _screens.Save(_settings.dataPath);
             //_savedWindows.Order();
             PopulateListBox();
             //txtVersion.Text = GetType().Assembly.GetName().Version.ToString();
             // Set version: Project -> WinSize4 Properties: Package - General - Assembly version / File version
             txtVersion.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            ClsDebug.ClearLog();
-            ClsDebug.LogNow("\nScreens:");
+            //ClsDebug.ClearLog(_settings.dataPath);
+            ClsDebug.LogNow(_settings.dataPath, "\nScreens:");
             for (int i = 0; i < _screens.ScreenList.Count; i++)
             {
-                ClsDebug.LogNow(" Screen " + i + " " + _screens.ScreenList[i].BoundsWidth + " " + _screens.ScreenList[i].BoundsHeight +
+                ClsDebug.LogNow(_settings.dataPath, " Screen " + i + " " + _screens.ScreenList[i].BoundsWidth + " " + _screens.ScreenList[i].BoundsHeight +
                     " Primary: " + _screens.ScreenList[i].Primary + " Present: " + _screens.ScreenList[i].Present);
             }
-            ClsDebug.LogNow("\nSaved windows:");
+            ClsDebug.LogNow(_settings.dataPath, "\nSaved windows:");
             for (int i = 0; i < _savedWindows.Props.Count; i++)
             {
-                ClsDebug.LogNow(" Window " + i + " " + _savedWindows.Props[i].Name + " " + _savedWindows.Props[i].Exe + " " + _savedWindows.Props[i].MonitorBoundsWidth +
+                ClsDebug.LogNow(_settings.dataPath, " Window " + i + " " + _savedWindows.Props[i].Name + " " + _savedWindows.Props[i].Exe + " " + _savedWindows.Props[i].MonitorBoundsWidth +
                     " " + _savedWindows.Props[i].MonitorBoundsHeight + " " + _savedWindows.Props[i].Primary);
             }
             notifyIcon1.Text = _savedWindows.Props.Count.ToString() + " controlled windows";
@@ -72,7 +72,7 @@ namespace WinSize4
             cbRunAtLogin.Checked = _settings.runAtLogin;
             cbIsPaused.Checked = _settings.isPaused;
             ClsDebug.AddText("\nStarting");
-            ClsDebug.LogText();
+            ClsDebug.LogText(_settings.dataPath);
             timer1.Interval = _settings.Interval;
             RegisterListener();
             //this.AddHandler(KeyDownEvent, new KeyEventHandler(KeyDown), true);
@@ -104,9 +104,9 @@ namespace WinSize4
                 {
                     long hWnd = (long)GetForegroundWindow();
                     int focusIndex = _currentWindows.GetCurrentWindowsIndexForhWnd(hWnd);
-                    bool Changed = _screens.AddNewScreens();
+                    bool Changed = _screens.AddNewScreens(_settings.dataPath);
                     if (_settings.resetIfNewScreen && Changed)
-                        _currentWindows.ResetMoved();
+                        _currentWindows.ResetMoved(_settings.dataPath);
 
                     // Update the existing window in _currentWindows
                     _currentWindows.UpdateWindowProperties(focusIndex);
@@ -179,11 +179,11 @@ namespace WinSize4
                 }
                 if (hWnd > 0 && _settings.isPaused == false)
                 {
-                    bool NewScreen = _screens.AddNewScreens();
-                    bool ChangedScreens = _screens.SetPresent();
+                    bool NewScreen = _screens.AddNewScreens(_settings.dataPath);
+                    bool ChangedScreens = _screens.SetPresent(_settings.dataPath);
                     if (_settings.resetIfNewScreen && (NewScreen || ChangedScreens))
                     {
-                        _currentWindows.ResetMoved();
+                        _currentWindows.ResetMoved(_settings.dataPath);
                         PopulateListBox();
                     }
                     ClsWindowProps currentWindowProps = _currentWindows.GetWindowProperties(hWnd);
@@ -197,12 +197,13 @@ namespace WinSize4
                         _currentWindows.Windows[currentWindowsIndex].Props.WindowClass;
                     if (currentWindowProps.Title != _lastTitle)
                     {
-                        ClsDebug.LogNow("Checking window: " + Text);
+                        ClsDebug.LogNow(_settings.dataPath, "Checking window: " + Text);
                     }
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
                         currentWindowProps.Title != _lastTitle &&
-                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true))
+                        (_currentWindows.Windows[currentWindowsIndex].Moved == false || _savedWindows.Props[targetSavedWindowsIndex].AlwaysMove == true) &&
+                        !_savedWindows.Props[targetSavedWindowsIndex].Disabled)
                     {
                         int targetScreenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[targetSavedWindowsIndex]);
                         //bool targetWindowHasParent = ((int)GetParent((IntPtr)hWnd) > 0);
@@ -216,13 +217,14 @@ namespace WinSize4
                                 _savedWindows.Props[targetSavedWindowsIndex],
                                 targetSavedWindowsIndex,
                                 _screens.ScreenList[targetScreenIndex],
-                                new ClsScreenList());
+                                new ClsScreenList(),
+                                _settings.dataPath);
                             _currentWindows.UpdateWindowProperties(currentWindowsIndex);
                             _currentWindows.Windows[currentWindowsIndex].Moved = true;
                             //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
                             ClsDebug.AddText($"Execution Time: {watch.ElapsedMilliseconds} ms");
                             watch.Stop();
-                            ClsDebug.LogText();
+                            ClsDebug.LogText(_settings.dataPath);
                         }
                     }
                     _lastTitle = currentWindowProps.Title;
@@ -260,6 +262,7 @@ namespace WinSize4
                     row = new string[] { _savedWindows.Props[i].Name, _savedWindows.Props[i].MonitorBoundsWidth.ToString(), _savedWindows.Props[i].MonitorBoundsHeight.ToString(), Primary };
                     var listViewItem = new ListViewItem(row);
                     listViewItem.Tag = _savedWindows.Props[i].Tag;
+                    listViewItem.StateImageIndex = _savedWindows.Props[i].Disabled ? 1 : 0;
                     if (_screens.GetScreenIndexForWindow(_savedWindows.Props[i]) == -1)
                     {
                         listView1.Items.Add(listViewItem);
@@ -349,25 +352,25 @@ namespace WinSize4
                         cbCustomWidth.Checked = Win.MaxWidth;
                         if (cbCustomWidth.Checked)
                         {
-                            tbWidth.Text = _screens.ScreenList[screenIndex].CustomWidth.ToString();
-                            tbLeft.Text = "0";
+                            tbWidth.Value = _screens.ScreenList[screenIndex].CustomWidth;
+                            tbLeft.Value = 0;
                         }
                         else
                         {
-                            tbWidth.Text = Win.Width.ToString();
-                            tbLeft.Text = Win.Left.ToString();
+                            tbWidth.Value = Win.Width;
+                            tbLeft.Value = Win.Left;
                         }
 
                         cbCustomHeight.Checked = Win.MaxHeight;
                         if (cbCustomHeight.Checked)
                         {
-                            tbHeight.Text = _screens.ScreenList[screenIndex].CustomHeight.ToString();
-                            tbTop.Text = "0";
+                            tbHeight.Value = _screens.ScreenList[screenIndex].CustomHeight;
+                            tbTop.Value = 0;
                         }
                         else
                         {
-                            tbHeight.Text = Win.Height.ToString();
-                            tbTop.Text = Win.Top.ToString();
+                            tbHeight.Value = Win.Height;
+                            tbTop.Value = Win.Top;
                         }
 
                         cbFullScreen.Checked = Win.FullScreen;
@@ -454,15 +457,16 @@ namespace WinSize4
                 _savedWindows.Props[index].IgnoreChildWindows = cbIgnoreChildWindows.Checked;
                 _savedWindows.Props[index].AlwaysMove = cbAlwaysMove.Checked;
                 _savedWindows.Props[index].CanResize = cbCanResize.Checked;
+                _savedWindows.Props[index].WindowClass = tbWindowClass.Text;
                 if (!cbCustomWidth.Checked)
                 {
-                    _savedWindows.Props[index].Width = int.Parse(tbWidth.Text);
-                    _savedWindows.Props[index].Left = int.Parse(tbLeft.Text);
+                    _savedWindows.Props[index].Width = (int) tbWidth.Value;
+                    _savedWindows.Props[index].Left = (int) tbLeft.Value;
                 }
                 if (!cbCustomHeight.Checked)
                 {
-                    _savedWindows.Props[index].Height = int.Parse(tbHeight.Text);
-                    _savedWindows.Props[index].Top = int.Parse(tbTop.Text);
+                    _savedWindows.Props[index].Height = (int) tbHeight.Value;
+                    _savedWindows.Props[index].Top = (int) tbTop.Value;
                 }
                 _savedWindows.Props[index].MaxWidth = cbCustomWidth.Checked;
                 _savedWindows.Props[index].MaxHeight = cbCustomHeight.Checked;
@@ -562,7 +566,7 @@ namespace WinSize4
             if (result == DialogResult.OK)
             {
                 _screens.ScreenList = Scr.ReturnScreenList;
-                _screens.Save();
+                _screens.Save(_settings.dataPath);
             }
         }
 
@@ -575,10 +579,10 @@ namespace WinSize4
             {
                 SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
             }
-            _savedWindows.Save();
+            _savedWindows.Save(_settings.dataPath);
             _settings.SaveToFile();
             RegisterListener();
-            _currentWindows.ResetMoved();
+            _currentWindows.ResetMoved(_settings.dataPath);
             this.Hide();
         }
 
@@ -612,10 +616,10 @@ namespace WinSize4
                 }
                 PopulateListBox();
             }
-            _savedWindows.Save();
+            _savedWindows.Save(_settings.dataPath);
             _settings.SaveToFile();
             RegisterListener();
-            _currentWindows.ResetMoved();
+            _currentWindows.ResetMoved(_settings.dataPath);
         }
 
         //**********************************************
@@ -699,15 +703,15 @@ namespace WinSize4
             if (cbCustomWidth.Checked || cbFullScreen.Checked)
             {
                 int screenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[Index]);
-                tbWidth.Text = _screens.ScreenList[screenIndex].CustomWidth.ToString();
-                tbLeft.Text = "0";
+                tbWidth.Value = _screens.ScreenList[screenIndex].CustomWidth;
+                tbLeft.Value = 0;
                 tbWidth.Enabled = false;
                 tbLeft.Enabled = false;
             }
             else
             {
-                tbWidth.Text = _savedWindows.Props[Index].Width.ToString();
-                tbLeft.Text = _savedWindows.Props[Index].Left.ToString();
+                tbWidth.Value = _savedWindows.Props[Index].Width;
+                tbLeft.Value = _savedWindows.Props[Index].Left;
                 tbWidth.Enabled = true;
                 tbLeft.Enabled = true;
             }
@@ -720,15 +724,15 @@ namespace WinSize4
             if (cbCustomHeight.Checked || cbFullScreen.Checked)
             {
                 int screenIndex = _screens.GetScreenIndexForWindow(_savedWindows.Props[Index]);
-                tbHeight.Text = _screens.ScreenList[screenIndex].CustomHeight.ToString();
-                tbTop.Text = "0";
+                tbHeight.Value = _screens.ScreenList[screenIndex].CustomHeight;
+                tbTop.Value = 0;
                 tbHeight.Enabled = false;
                 tbTop.Enabled = false;
             }
             else
             {
-                tbHeight.Text = _savedWindows.Props[Index].Height.ToString();
-                tbTop.Text = _savedWindows.Props[Index].Top.ToString();
+                tbHeight.Value = _savedWindows.Props[Index].Height;
+                tbTop.Value = _savedWindows.Props[Index].Top;
                 tbHeight.Enabled = true;
                 tbTop.Enabled = true;
             }
@@ -746,10 +750,10 @@ namespace WinSize4
             cbCustomHeight.Enabled = !cbFullScreen.Checked;
             if (cbFullScreen.Checked)
             {
-                tbWidth.Text = "0";
-                tbLeft.Text = "0";
-                tbHeight.Text = "0";
-                tbTop.Text = "0";
+                tbWidth.Value = 0;
+                tbLeft.Value = 0;
+                tbHeight.Value = 0;
+                tbTop.Value = 0;
                 tbWidth.Enabled = false;
                 tbLeft.Enabled = false;
                 tbHeight.Enabled = false;
@@ -757,10 +761,10 @@ namespace WinSize4
             }
             else
             {
-                tbWidth.Text = _savedWindows.Props[Index].Width.ToString();
-                tbLeft.Text = _savedWindows.Props[Index].Left.ToString();
-                tbHeight.Text = _savedWindows.Props[Index].Height.ToString();
-                tbTop.Text = _savedWindows.Props[Index].Top.ToString();
+                tbWidth.Value = _savedWindows.Props[Index].Width;
+                tbLeft.Value = _savedWindows.Props[Index].Left;
+                tbHeight.Value = _savedWindows.Props[Index].Height;
+                tbTop.Value = _savedWindows.Props[Index].Top;
                 tbWidth.Enabled = true;
                 tbLeft.Enabled = true;
                 tbHeight.Enabled = true;
@@ -829,7 +833,7 @@ namespace WinSize4
 
         private void butResetMoved_Click(object sender, EventArgs e)
         {
-            _currentWindows.ResetMoved();
+            _currentWindows.ResetMoved(_settings.dataPath);
         }
 
         private void butShow_Click(object sender, EventArgs e)
@@ -1010,6 +1014,36 @@ namespace WinSize4
                 if (focusedItem != null && focusedItem.Bounds.Contains(e.Location))
                 {
                     contextMenuStrip1.Show(Cursor.Position);
+                }
+            }
+            // Get detailed hit-test information about where the user clicked.
+            var hitTestInfo = listView1.HitTest(e.X, e.Y);
+
+            // Check if the click was specifically on the state image area.
+            if (hitTestInfo.Location == ListViewHitTestLocations.StateImage)
+            {
+                // Knowing for sure the user clicked the icon, so we can get the item.
+                var lvi = hitTestInfo.Item;
+                try
+                {
+                    int tag = (int)lvi.Tag;
+                    int savedIndex = _savedWindows.GetWindowIndexByTag(tag);
+
+                    if (savedIndex != -1)
+                    {
+                        // 1. Toggle the "Disabled" property in the data source.
+                        _savedWindows.Props[savedIndex].Disabled = !_savedWindows.Props[savedIndex].Disabled;
+
+                        // 2. Update the image to reflect the new state.
+                        //    Index 1 is the red cross, Index 0 is the green tick.
+                        lvi.StateImageIndex = _savedWindows.Props[savedIndex].Disabled ? 1 : 0;
+
+                        _dirty = true; // Mark that there are unsaved changes.
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ClsDebug.LogToEvent(ex, EventLogEntryType.Error, "Error in listView1_MouseClick");
                 }
             }
         }

@@ -4,19 +4,19 @@ using System.Windows.Forms;
 
 namespace WinSize4
 {
-    public static class ClsDebug
+    public class ClsDebug
     {
         public static bool Debug = false;
         public static string _text = "";
 
-        public static void ClearLog()
+        public static void ClearLog(string dataPath)
         {
-            string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-            Directory.CreateDirectory(_path);
+            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            Directory.CreateDirectory(dataPath);
             string _FileName = "Debug.txt";
-            if (File.Exists(Path.Combine(_path, _FileName)))
+            if (File.Exists(Path.Combine(dataPath, _FileName)))
             {
-                File.Delete(Path.Combine(_path, _FileName));
+                File.Delete(Path.Combine(dataPath, _FileName));
             }
             _text = "";
         }
@@ -27,15 +27,15 @@ namespace WinSize4
             _text += dt + " " + Text + "\n";
         }
 
-        public static void LogText()
+        public static void LogText(string dataPath)
         {
-            string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
             string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            Directory.CreateDirectory(_path);
+            Directory.CreateDirectory(dataPath);
             string _FileName = "Debug.txt";
             if (Debug)
             {
-                using (var writer = new StreamWriter(_path + "\\" + _FileName, true))
+                using (var writer = new StreamWriter(dataPath + "\\" + _FileName, true))
                 {
                     writer.WriteLine(dt + " " + _text);
                 }
@@ -43,15 +43,15 @@ namespace WinSize4
             _text = "";
         }
 
-        public static void LogNow(string Text)
+        public static void LogNow(string dataPath, string Text)
         {
             string dt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
-            Directory.CreateDirectory(_path);
+            //string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            Directory.CreateDirectory(dataPath);
             string _FileName = "Debug.txt";
             if (Debug)
             {
-                using (var writer = new StreamWriter(_path + "\\" + _FileName, true))
+                using (var writer = new StreamWriter(dataPath + "\\" + _FileName, true))
                 {
                     writer.WriteLine(dt + " " + Text);
                 }
@@ -67,7 +67,7 @@ namespace WinSize4
                     EventLog.WriteEntry("WinSize4", text, Type, 1);
                 }
                 catch
-                (Exception ex2)
+                (Exception)
                 {
                     EventLog.WriteEntry("Application", text, Type, 1);
                 }

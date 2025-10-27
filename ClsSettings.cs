@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinSize4
 {
@@ -14,11 +17,23 @@ namespace WinSize4
         public bool showAllWindows = true;
         public bool resetIfNewScreen = false;
         public bool runAtLogin = false;
-        private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+        public string dataPath = "";
         private string _fileNameWindows = "Settings.json";
         public bool Debug = false;
         public int Interval = 500;
         public bool isPaused = false;
+
+        public ClsSettings()
+        {
+            dataPath = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+            if (Directory.Exists(Directory.GetCurrentDirectory() + "\\data"))
+            {
+                dataPath = Directory.GetCurrentDirectory() + "\\data";
+            }
+            //ClsDebug.ClearLog(dataPath);
+            //ClsDebug.LogNow(dataPath, "\nData directory is set to: " + dataPath);
+            ClsDebug.LogToEvent(new Exception(), EventLogEntryType.Information, "\nData directory is set to: " + dataPath);
+        }
 
         //**********************************************
         /// <summary> Saves data to disk </summary>
@@ -40,8 +55,8 @@ namespace WinSize4
             {
                 WriteIndented = true
             };
-            Directory.CreateDirectory(_path);
-            using (var writer = new StreamWriter(_path + "\\" + _fileNameWindows))
+            Directory.CreateDirectory(dataPath);
+            using (var writer = new StreamWriter(dataPath + "\\" + _fileNameWindows))
             {
                 String _json = JsonSerializer.Serialize(saveList, options);
                 writer.Write(_json);
@@ -57,9 +72,9 @@ namespace WinSize4
             {
                 ClsSettingsList saveList = new ClsSettingsList();
 
-                if (File.Exists(_path + "\\" + _fileNameWindows))
+                if (File.Exists(dataPath + "\\" + _fileNameWindows))
                 {
-                    using (StreamReader r = new StreamReader(_path + "\\" + _fileNameWindows))
+                    using (StreamReader r = new StreamReader(dataPath + "\\" + _fileNameWindows))
                     {
                         String json = r.ReadToEnd();
                         saveList = JsonSerializer.Deserialize<ClsSettingsList>(json);
