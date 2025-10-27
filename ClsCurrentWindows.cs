@@ -187,7 +187,7 @@ namespace WinSize4
         /// <param name="SavedWindow">The window to use for location</param>
         /// <param name=""></param>
         //**********************************************
-        public void MoveCurrentWindow(int currentWindowIndex, ClsWindowProps savedWindowProps, int savedWindowIndex, ClsScreenList savedScreenProps, ClsScreenList currentScreenProps)
+        public void MoveCurrentWindow(int currentWindowIndex, ClsWindowProps savedWindowProps, int savedWindowIndex, ClsScreenList savedScreenProps, ClsScreenList currentScreenProps, string dataPath)
         {
             try
             {
@@ -239,7 +239,7 @@ namespace WinSize4
 
                     if (Return == false)
                     {
-                        ClsDebug.LogNow("Window could not be moved: " + savedWindowProps.Name);
+                        ClsDebug.LogNow(dataPath, "Window could not be moved: " + savedWindowProps.Name);
                         ClsDebug.LogToEvent(new Exception(""), EventLogEntryType.Error, "  Window could not be moved: " + savedWindowProps.Name);
                     }
                 }
@@ -270,13 +270,13 @@ namespace WinSize4
             public int y;
         }
 
-        public void ResetMoved()
+        public void ResetMoved(string dataPath)
         {
             foreach (ClsWindows Win in this.Windows)
             {
                 Win.Moved = false;
             }
-            ClsDebug.LogNow("ResetMoved\n");
+            ClsDebug.LogNow(dataPath, "ResetMoved\n");
         }
 
         //**********************************************

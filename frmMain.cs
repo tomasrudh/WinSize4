@@ -10,10 +10,10 @@ namespace WinSize4
 {
     public partial class frmMain : Form
     {
+        public ClsSettings _settings = new ClsSettings();                    // Global settings
         public ClsCurrentWindows _currentWindows = new ClsCurrentWindows();  // Windows open right now
         public ClsSavedWindows _savedWindows = new ClsSavedWindows();        // Windows saved on file
         public ClsScreens _screens = new ClsScreens();
-        public ClsSettings _settings = new ClsSettings();                    // Global settings
         const int _hotKeyID = 1;
         //const int _hotKeyModifierLeft = 2;    //Alt = 1, Ctrl = 2, Shift = 4, Win(Windows key for opening the start menu) = 8
         //const int _hotKeyModifierRight = 4;   //Alt = 1, Ctrl = 2, Shift = 4, Win(Windows key for opening the start menu) = 8
@@ -32,27 +32,27 @@ namespace WinSize4
         {
             InitializeComponent();
             _settings.LoadFromFile();
-            _savedWindows.Load();
-            _screens.Load();
-            _screens.AddNewScreens();
-            _screens.SetPresent();
-            _screens.Save();
+            _savedWindows.Load(_settings.dataPath);
+            _screens.Load(_settings.dataPath);
+            _screens.AddNewScreens(_settings.dataPath);
+            _screens.SetPresent(_settings.dataPath);
+            _screens.Save(_settings.dataPath);
             //_savedWindows.Order();
             PopulateListBox();
             //txtVersion.Text = GetType().Assembly.GetName().Version.ToString();
             // Set version: Project -> WinSize4 Properties: Package - General - Assembly version / File version
             txtVersion.Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            ClsDebug.ClearLog();
-            ClsDebug.LogNow("\nScreens:");
+            //ClsDebug.ClearLog(_settings.dataPath);
+            ClsDebug.LogNow(_settings.dataPath, "\nScreens:");
             for (int i = 0; i < _screens.ScreenList.Count; i++)
             {
-                ClsDebug.LogNow(" Screen " + i + " " + _screens.ScreenList[i].BoundsWidth + " " + _screens.ScreenList[i].BoundsHeight +
+                ClsDebug.LogNow(_settings.dataPath, " Screen " + i + " " + _screens.ScreenList[i].BoundsWidth + " " + _screens.ScreenList[i].BoundsHeight +
                     " Primary: " + _screens.ScreenList[i].Primary + " Present: " + _screens.ScreenList[i].Present);
             }
-            ClsDebug.LogNow("\nSaved windows:");
+            ClsDebug.LogNow(_settings.dataPath, "\nSaved windows:");
             for (int i = 0; i < _savedWindows.Props.Count; i++)
             {
-                ClsDebug.LogNow(" Window " + i + " " + _savedWindows.Props[i].Name + " " + _savedWindows.Props[i].Exe + " " + _savedWindows.Props[i].MonitorBoundsWidth +
+                ClsDebug.LogNow(_settings.dataPath, " Window " + i + " " + _savedWindows.Props[i].Name + " " + _savedWindows.Props[i].Exe + " " + _savedWindows.Props[i].MonitorBoundsWidth +
                     " " + _savedWindows.Props[i].MonitorBoundsHeight + " " + _savedWindows.Props[i].Primary);
             }
             notifyIcon1.Text = _savedWindows.Props.Count.ToString() + " controlled windows";
@@ -72,7 +72,7 @@ namespace WinSize4
             cbRunAtLogin.Checked = _settings.runAtLogin;
             cbIsPaused.Checked = _settings.isPaused;
             ClsDebug.AddText("\nStarting");
-            ClsDebug.LogText();
+            ClsDebug.LogText(_settings.dataPath);
             timer1.Interval = _settings.Interval;
             RegisterListener();
             //this.AddHandler(KeyDownEvent, new KeyEventHandler(KeyDown), true);
@@ -104,9 +104,9 @@ namespace WinSize4
                 {
                     long hWnd = (long)GetForegroundWindow();
                     int focusIndex = _currentWindows.GetCurrentWindowsIndexForhWnd(hWnd);
-                    bool Changed = _screens.AddNewScreens();
+                    bool Changed = _screens.AddNewScreens(_settings.dataPath);
                     if (_settings.resetIfNewScreen && Changed)
-                        _currentWindows.ResetMoved();
+                        _currentWindows.ResetMoved(_settings.dataPath);
 
                     // Update the existing window in _currentWindows
                     _currentWindows.UpdateWindowProperties(focusIndex);
@@ -179,11 +179,11 @@ namespace WinSize4
                 }
                 if (hWnd > 0 && _settings.isPaused == false)
                 {
-                    bool NewScreen = _screens.AddNewScreens();
-                    bool ChangedScreens = _screens.SetPresent();
+                    bool NewScreen = _screens.AddNewScreens(_settings.dataPath);
+                    bool ChangedScreens = _screens.SetPresent(_settings.dataPath);
                     if (_settings.resetIfNewScreen && (NewScreen || ChangedScreens))
                     {
-                        _currentWindows.ResetMoved();
+                        _currentWindows.ResetMoved(_settings.dataPath);
                         PopulateListBox();
                     }
                     ClsWindowProps currentWindowProps = _currentWindows.GetWindowProperties(hWnd);
@@ -197,7 +197,7 @@ namespace WinSize4
                         _currentWindows.Windows[currentWindowsIndex].Props.WindowClass;
                     if (currentWindowProps.Title != _lastTitle)
                     {
-                        ClsDebug.LogNow("Checking window: " + Text);
+                        ClsDebug.LogNow(_settings.dataPath, "Checking window: " + Text);
                     }
                     if (targetSavedWindowsIndex > -1 &&
                         currentWindowProps.Title != "" &&
@@ -217,13 +217,14 @@ namespace WinSize4
                                 _savedWindows.Props[targetSavedWindowsIndex],
                                 targetSavedWindowsIndex,
                                 _screens.ScreenList[targetScreenIndex],
-                                new ClsScreenList());
+                                new ClsScreenList(),
+                                _settings.dataPath);
                             _currentWindows.UpdateWindowProperties(currentWindowsIndex);
                             _currentWindows.Windows[currentWindowsIndex].Moved = true;
                             //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds} ms");
                             ClsDebug.AddText($"Execution Time: {watch.ElapsedMilliseconds} ms");
                             watch.Stop();
-                            ClsDebug.LogText();
+                            ClsDebug.LogText(_settings.dataPath);
                         }
                     }
                     _lastTitle = currentWindowProps.Title;
@@ -565,7 +566,7 @@ namespace WinSize4
             if (result == DialogResult.OK)
             {
                 _screens.ScreenList = Scr.ReturnScreenList;
-                _screens.Save();
+                _screens.Save(_settings.dataPath);
             }
         }
 
@@ -578,10 +579,10 @@ namespace WinSize4
             {
                 SaveValuesForIndex(_savedWindows.GetWindowIndexByTag((int)listView1.SelectedItems[0].Tag));
             }
-            _savedWindows.Save();
+            _savedWindows.Save(_settings.dataPath);
             _settings.SaveToFile();
             RegisterListener();
-            _currentWindows.ResetMoved();
+            _currentWindows.ResetMoved(_settings.dataPath);
             this.Hide();
         }
 
@@ -615,10 +616,10 @@ namespace WinSize4
                 }
                 PopulateListBox();
             }
-            _savedWindows.Save();
+            _savedWindows.Save(_settings.dataPath);
             _settings.SaveToFile();
             RegisterListener();
-            _currentWindows.ResetMoved();
+            _currentWindows.ResetMoved(_settings.dataPath);
         }
 
         //**********************************************
@@ -832,7 +833,7 @@ namespace WinSize4
 
         private void butResetMoved_Click(object sender, EventArgs e)
         {
-            _currentWindows.ResetMoved();
+            _currentWindows.ResetMoved(_settings.dataPath);
         }
 
         private void butShow_Click(object sender, EventArgs e)

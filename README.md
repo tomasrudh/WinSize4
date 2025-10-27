@@ -96,3 +96,12 @@ This is what Windows considers the usable area, excluding the task bar area.
 
 ## Custom working area
 You can set your own working area, for example exclude an area to the right for gadgets that you don't want covered by windows.
+
+# Portable mode
+It is possible to run WinSize4 without installing it. Download the ZIP file and extract it in any folder, run the file WinSize4.exe.
+
+Data is by default saved in you personal application data folder (%localappdata%). If you don't want that, create  a folder 'data' in the same folder as the exe file. When WinSize4 starts and detects this folder, it will save its data there.
+
+Note that if you had data in your local application data folder will that data not be copied over, it will however remain.
+
+WinSize4 creates entries in the event log under the Event Source 'WinSize4'. However, if you have not installed WinSize4 will those entries be saved under the generic Event Source 'Application'.
