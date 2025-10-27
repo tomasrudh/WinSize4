@@ -14,7 +14,7 @@ using static System.Net.Mime.MediaTypeNames;
 public class ClsSavedWindows
 {
     public List<ClsWindowProps> Props = new List<ClsWindowProps>();
-    private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
+    //private string _path = Environment.GetEnvironmentVariable("LocalAppData") + "\\WinSize4";
     private int _nextTag = 0;
 
     //**********************************************
@@ -286,7 +286,7 @@ public class ClsSavedWindows
     //**********************************************
     /// <summary> Saves data to disk </summary>
     //**********************************************
-    public void Save()
+    public void Save(string dataPath)
     {
         string fileNameWindows;
         var options = new JsonSerializerOptions()
@@ -298,7 +298,7 @@ public class ClsSavedWindows
         int j;
 
         // Remove all saved files
-        var fileEntries = Directory.GetFiles(_path, "*.json");
+        var fileEntries = Directory.GetFiles(dataPath, "*.json");
         foreach (string fileName in fileEntries)
         {
             if (Regex.Match(fileName, @"\d{3,5}x\d{3,5}P?\.json").Success)
@@ -327,12 +327,12 @@ public class ClsSavedWindows
                 saveProps[saveProps.Count - 1].Add(this.Props[i]);
             }
         }
-        Directory.CreateDirectory(_path);
+        Directory.CreateDirectory(dataPath);
         for (int i = 0; i < saveProps.Count; i++)
         {
             fileNameWindows = saveProps[i][0].MonitorBoundsWidth + "x" + saveProps[i][0].MonitorBoundsHeight;
             fileNameWindows += (saveProps[i][0].Primary) ? "P.json" : ".json";
-            using (var writer = new StreamWriter(_path + "\\" + fileNameWindows))
+            using (var writer = new StreamWriter(dataPath + "\\" + fileNameWindows))
             {
                 String json = JsonSerializer.Serialize(saveProps[i], options);
                 writer.Write(json);
@@ -343,13 +343,13 @@ public class ClsSavedWindows
     //**********************************************
     /// <summary> Loads data from disk </summary>
     //**********************************************
-    public void Load()
+    public void Load(string dataPath)
     {
         this.Props.Clear();
         int Id = 0;
-        System.IO.Directory.CreateDirectory(_path);
+        System.IO.Directory.CreateDirectory(dataPath);
         List<ClsWindowProps> loadProps = new List<ClsWindowProps>();
-        var fileEntries = Directory.GetFiles(_path, "*.json");
+        var fileEntries = Directory.GetFiles(dataPath, "*.json");
         foreach (string fileName in fileEntries)
         {
             if (Regex.Match(fileName, @"\d{3,5}x\d{3,5}P?\.json").Success)
