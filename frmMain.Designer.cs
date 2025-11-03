@@ -196,6 +196,7 @@
             tbTop.Location = new Point(168, 340);
             tbTop.Margin = new Padding(4, 3, 4, 3);
             tbTop.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            tbTop.Minimum = new decimal(new int[] { 100000, 0, 0, int.MinValue });
             tbTop.Name = "tbTop";
             tbTop.Size = new Size(120, 23);
             tbTop.TabIndex = 61;
@@ -216,6 +217,7 @@
             tbWidth.Location = new Point(168, 369);
             tbWidth.Margin = new Padding(4, 3, 4, 3);
             tbWidth.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            tbWidth.Minimum = new decimal(new int[] { 100000, 0, 0, int.MinValue });
             tbWidth.Name = "tbWidth";
             tbWidth.Size = new Size(120, 23);
             tbWidth.TabIndex = 62;
@@ -236,6 +238,7 @@
             tbHeight.Location = new Point(168, 399);
             tbHeight.Margin = new Padding(4, 3, 4, 3);
             tbHeight.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            tbHeight.Minimum = new decimal(new int[] { 100000, 0, 0, int.MinValue });
             tbHeight.Name = "tbHeight";
             tbHeight.Size = new Size(120, 23);
             tbHeight.TabIndex = 63;
@@ -443,7 +446,9 @@
             // tbLeft
             // 
             tbLeft.Location = new Point(168, 310);
+            tbLeft.Margin = new Padding(4, 3, 4, 3);
             tbLeft.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            tbLeft.Minimum = new decimal(new int[] { 100000, 0, 0, int.MinValue });
             tbLeft.Name = "tbLeft";
             tbLeft.Size = new Size(120, 23);
             tbLeft.TabIndex = 60;
